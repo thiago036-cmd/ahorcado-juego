@@ -61,3 +61,9 @@ else:
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
         st.write(f"❤️ Vidas: {s.v}/6")
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+        cols = st.columns(len(abc))
+        for i, l in enumerate(abc):
+            with cols[i]:
+                if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
+                elif st.button(l, key=l):
+                    s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
