@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. CONFIGURACIÓN DE ÉLITE ---
-st.set_page_config(page_title="Hangman Elite", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Ahorcado online", layout="centered", initial_sidebar_state="collapsed")
 
 @st.cache_resource
 def get_global_engine():
@@ -152,3 +152,4 @@ else:
                 if final_guess == s["word"]: s["win"] = True
                 else: s["lives"] = 0
                 st.rerun()
+
