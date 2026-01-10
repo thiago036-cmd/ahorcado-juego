@@ -17,21 +17,6 @@ st.markdown(f"""<style>
     .stApp {{ background:{bg}; color:{tx}; font-family: 'Segoe UI', sans-serif; }}
     .v-stack {{ display: flex; flex-direction: column; align-items: center; text-align: center; }}
     .card {{ background:{cd}; border:2px solid {br}; border-radius:24px; padding:30px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
-    
-    /* MUÑECO ESTILO DIBUJO (IDÉNTICO A TU IMAGEN) */
-    .hangman-box {{ 
-        font-family: 'Courier New', Courier, monospace !important; 
-        font-size: 24px !important; 
-        background: #11151c; 
-        color: #7cfc00; 
-        padding: 25px; 
-        border-radius: 15px; 
-        line-height: 1.2 !important; 
-        display: inline-block; 
-        text-align: left; 
-        white-space: pre !important; 
-        border: 2px solid #30363d;
-    }}
 
     .word-box {{ font-size: 40px; font-weight: 900; letter-spacing: 12px; margin: 20px 0; color: #58a6ff; }}
 
@@ -50,13 +35,13 @@ st.markdown(f"""<style>
 # 3. ETAPAS DEL MUÑECO (ESTILO LINEAL DE TU IMAGEN)
 # He usado caracteres de líneas finas para que no parezcan bloques
 stages = {
-    6: "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
-    5: "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
-    4: "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
-    3: "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
-    2: "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
-    1: "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
-    0: "  +---+\n  |   |\n  X   |\n /|\\  |\n / \\  |\n      |\n========="
+    6: "🏗️\n\n\n",
+    5: "🏗️\n  😶\n\n",
+    4: "🏗️\n  😶\n  👕\n",
+    3: "🏗️\n  😶\n /👕\n",
+    2: "🏗️\n  😶\n /👕\\\n",
+    1: "🏗️\n  😶\n /👕\\\n /",
+    0: "🏗️\n  💀\n /👕\\\n / \\"
 }
 
 # 4. INTERFAZ
@@ -107,3 +92,4 @@ else:
                 if ans == s["p"]: s["win"] = True
                 else: s["v"] = 0
                 st.rerun()
+
