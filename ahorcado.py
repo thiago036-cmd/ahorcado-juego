@@ -20,7 +20,7 @@ st.markdown("""<style>
         background:#1c2128 !important; border:30px solid #000 !important; 
         border-bottom: 10px solid #000 !important; border-radius:5px !important; 
         height:90px !important; width:100% !important;
-        padding: 0 0 5px 0 !important; /* Centrado visual para borde gigante */
+        padding: 0 0 100px 0 !important; /* Centrado visual para borde gigante */
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     button p { color:white !important; font-weight:900 !important; font-size:30px !important; margin:0 !important; }
@@ -68,6 +68,7 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
 
 
 
