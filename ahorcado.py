@@ -23,7 +23,7 @@ st.markdown("""<style>
     /* Estilo de los botones (Teclas) */
     button { 
         background:#1c2128 !important; border: none !important; border-radius: 8px !important; 
-        height:60px !important; width:100% !important;
+        height:60px !important; width:1000% !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
         padding: 0 !important; 
     }
@@ -77,6 +77,7 @@ else:
                     s.u.append(l.lower())
                     if l.lower() not in s.p: s.v -= 1 # Restar vida si falla
                     st.rerun()
+
 
 
 
