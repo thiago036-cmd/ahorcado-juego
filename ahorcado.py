@@ -9,44 +9,49 @@ def engine(): return {"p": "", "u": [], "v": 6, "win": False, "bet": False, "dar
 s = engine()
 st_autorefresh(interval=2000, key="sync")
 
-# 2. DISEÑO UI (TECLADO STICKER Y VERTICALIDAD)
+# 2. UI: TECLADO STICKER Y BLOQUE SÓLIDO
 bg, cd, tx, br = ("#0e1117","#161b22","#fff","#30363d") if s["dark"] else ("#fff","#f6f8fa","#1f2328","#d0d7de")
 
-# Estilo de letras: Blanco con borde negro (Modo Claro)
-txt_style = "color: white; -webkit-text-stroke: 1.5px black; font-weight: 900;" if not s["dark"] else f"color: {tx}; font-weight: 700;"
+# Letras blancas con borde negro para Modo Claro (Efecto Sticker)
+sticker_txt = "color: white !important; -webkit-text-stroke: 1.5px black !important; font-weight: 900 !important;" if not s["dark"] else f"color: {tx} !important; font-weight: 700 !important;"
 
 st.markdown(f"""<style>
     .stApp {{ background:{bg}; color:{tx}; font-family: 'Segoe UI', sans-serif; }}
-    .v-stack {{ display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }}
-    .card {{ background:{cd}; border:2px solid {br}; border-radius:20px; padding:25px; width: 100%; margin-bottom: 20px; }}
+    .v-stack {{ display: flex; flex-direction: column; align-items: center; text-align: center; }}
+    .card {{ background:{cd}; border:2px solid {br}; border-radius:24px; padding:30px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
     
-    /* MUÑECO REPARADO (ESTABLE) */
+    /* EL BLOQUE INAMOVIBLE */
     .hangman-box {{ 
-        font-family: 'Courier New', monospace; font-size: 24px; background: #000; 
-        color: #00ff88; padding: 20px; border-radius: 12px; line-height: 1.2;
-        display: inline-block; text-align: left; white-space: pre;
-        min-width: 180px; border: 2px solid #58a6ff;
+        font-family: 'Courier New', Courier, monospace !important; 
+        font-size: 24px !important; 
+        background: #000; 
+        color: #00ffcc; 
+        padding: 25px; 
+        border-radius: 15px; 
+        line-height: 1.2 !important; 
+        display: inline-block; 
+        text-align: left; 
+        white-space: pre !important; /* ESTO HACE QUE NO SE MUEVA */
+        border: 3px solid #58a6ff;
     }}
 
-    .word-box {{ font-size: 38px; font-weight: 900; letter-spacing: 12px; margin: 15px 0; color: #58a6ff; }}
+    .word-box {{ font-size: 40px; font-weight: 900; letter-spacing: 12px; margin: 20px 0; color: #58a6ff; }}
 
-    /* TECLADO STICKER PROFESIONAL */
+    /* TECLADO STICKER */
     div[data-testid="column"] button {{
         background: {cd} !important;
         border: 3px solid black !important;
-        border-radius: 10px !important;
-        height: 50px !important;
-        {txt_style}
-        font-size: 20px !important;
+        border-radius: 12px !important;
+        height: 55px !important;
+        {sticker_txt}
+        font-size: 22px !important;
         box-shadow: 4px 4px 0px black;
         transition: 0.1s;
     }}
     div[data-testid="column"] button:active {{ transform: translate(3px, 3px); box-shadow: none; }}
-    
-    .stButton > button[key="th"] {{ background: #58a6ff !important; color: white !important; -webkit-text-stroke: 0px !important; box-shadow: none; border:none!important; }}
 </style>""", unsafe_allow_html=True)
 
-# 3. ETAPAS DEL MUÑECO (CARACTERES ESTÁNDAR PARA EVITAR BUGS)
+# 3. ETAPAS DEL MUÑECO (ESTRUCTURA RÍGIDA)
 stages = {
     6: "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
     5: "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
@@ -59,32 +64,51 @@ stages = {
 
 # 4. INTERFAZ
 c1, c2 = st.columns([0.85, 0.15])
-c1.markdown("### 🕹️ AHORCADO ONLINE")
+c1.markdown("## 🕹️ AHORCADO ONLINE")
 if c2.button("🌓", key="th"): s["dark"] = not s["dark"]; st.rerun()
 
 if not s["p"]:
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    pi = st.text_input("🔑 ELIGE UNA PALABRA:", type="password")
-    if st.button("🚀 COMENZAR PARTIDA", use_container_width=True):
+    pi = st.text_input("🔑 ELIGE LA PALABRA:", type="password")
+    if st.button("🚀 EMPEZAR JUEGO", use_container_width=True):
         if pi: s.update({"p":pi.lower().strip(),"u":[],"v":6,"win":False}); st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 else:
     won = all(l in s["u"] or l == " " for l in s["p"]) or s["win"]
     if won or s["v"] <= 0:
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-        if won: st.balloons(); st.markdown("### 🏆 ¡GANASTE!")
-        else: st.markdown(f"### 💀 GAME OVER<br>LA PALABRA ERA: **{s['p'].upper()}**", unsafe_allow_html=True)
-        if st.button("🔄 NUEVA PARTIDA", use_container_width=True): s.update({"p":""}); st.rerun()
+        if won: st.balloons(); st.markdown("### 🏆 ¡LO LOGRASTE!")
+        else: st.markdown(f"### 💀 FIN DEL JUEGO<br>ERA: **{s['p'].upper()}**", unsafe_allow_html=True)
+        if st.button("🔄 JUGAR OTRA VEZ", use_container_width=True): s.update({"p":""}); st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     else:
-        # Layout 100% Vertical
         st.markdown(f"""<div class='v-stack'>
             <div class='card'>
                 <pre class='hangman-box'>{stages[s['v']]}</pre>
-                <div style='margin-top:10px; font-weight:bold;'>VIDAS: {s['v']} / 6</div>
+                <div style='margin-top:15px; font-weight:bold; font-size:22px;'>VIDAS: {s['v']} / 6</div>
                 <div class='word-box'>{' '.join([l.upper() if l in s['u'] or l==' ' else '_' for l in s['p']])}</div>
             </div>
         </div>""", unsafe_allow_html=True)
         
-        # Teclado Sticker
-        cols = st.columns
+        # Teclado (Horizontal en cuadrícula)
+        st.write("---")
+        cols = st.columns(7)
+        for i, l in enumerate("ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"):
+            with cols[i%7]:
+                l_low = l.lower()
+                if l_low in s["u"]:
+                    icon = "✅" if l_low in s["p"] else "❌"
+                    st.markdown(f"<div style='text-align:center;'>{icon}<br><b>{l}</b></div>", unsafe_allow_html=True)
+                elif st.button(l, key=f"btn-{l}"):
+                    s["u"].append(l_low)
+                    if l_low not in s["p"]: s["v"] -= 1
+                    st.rerun()
+        
+        st.write("")
+        if st.button("🔥 ARRIESGAR TODO", use_container_width=True): s["bet"] = not s["bet"]; st.rerun()
+        if s["bet"]:
+            ans = st.text_input("🎯 ¿CUÁL ES LA PALABRA?", key="guess").lower().strip()
+            if st.button("✔️ ENVIAR"): 
+                if ans == s["p"]: s["win"] = True
+                else: s["v"] = 0
+                st.rerun()
