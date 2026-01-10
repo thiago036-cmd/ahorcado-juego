@@ -14,8 +14,8 @@ st.markdown("""<style>
     /* Ajuste del teclado: crea una rejilla adaptable */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important; 
-        gap: 30px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(80px, 10fr)) !important; 
+        gap: 10px !important; 
     }
     /* En celulares (pantalla < 600px) muestra 4 botones por fila */
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(4, 1fr) !important; } }
@@ -77,4 +77,5 @@ else:
                     s.u.append(l.lower())
                     if l.lower() not in s.p: s.v -= 1 # Restar vida si falla
                     st.rerun()
+
 
