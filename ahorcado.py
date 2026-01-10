@@ -14,7 +14,7 @@ st.markdown("""<style>
     /* Ajuste del teclado: crea una rejilla adaptable */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(80px, 10fr)) !important; 
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important; 
         gap: 10px !important; 
     }
     /* En celulares (pantalla < 600px) muestra 4 botones por fila */
@@ -22,7 +22,7 @@ st.markdown("""<style>
     
     /* Estilo de los botones (Teclas) */
     button { 
-        background:#1c2128 !important; border: none !important; border-radius:8px !important; 
+        background:#1c2128 !important; border: none !important; border-radius:29px !important; 
         height:60px !important; width:100% !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
         padding: 0 !important; 
@@ -77,5 +77,6 @@ else:
                     s.u.append(l.lower())
                     if l.lower() not in s.p: s.v -= 1 # Restar vida si falla
                     st.rerun()
+
 
 
