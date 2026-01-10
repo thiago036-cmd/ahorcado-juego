@@ -1,157 +1,168 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. CONFIGURACIÓN DE ALTO NIVEL ---
-st.set_page_config(page_title="Ahorcado Online", layout="centered")
+# --- 1. CONFIGURACIÓN DE ÉLITE ---
+st.set_page_config(page_title="Ahorcado Online Pro", layout="centered")
 
 @st.cache_resource
-def obtener_motor_global():
-    return {"palabra": "", "usadas": [], "vidas": 6, "victoria": False, "arriesgando": False}
+def engine():
+    return {"p": "", "u": [], "v": 6, "win": False, "bet": False}
 
-s = obtener_motor_global()
-# Sincronización automática cada 2.5 segundos para juego cooperativo
-st_autorefresh(interval=2500, key="sync_global")
+s = engine()
+st_autorefresh(interval=2500, key="global_sync")
 
-# --- 2. DISEÑO UI PREMIUM ---
-color_estado = "#10b981" if s["vidas"] >= 4 else "#f59e0b" if s["vidas"] >= 2 else "#ef4444"
+# --- 2. UI/UX DESIGN SYSTEM (COMPACTO Y PROFESIONAL) ---
+accent = "#22d3ee" if s["v"] >= 4 else "#fbbf24" if s["v"] >= 2 else "#f87171"
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=JetBrains+Mono&display=swap');
     
-    .stApp {{ background: radial-gradient(circle at top, #1e293b, #0f172a); color: #f8fafc; font-family: 'Inter', sans-serif; }}
+    .stApp {{ background: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }}
     
-    /* CABECERA */
-    .header-title {{
-        text-align: center; font-weight: 900; font-size: 2.5rem;
-        background: linear-gradient(to right, #38bdf8, #818cf8);
+    /* CABECERA COMPACTA */
+    .title {{
+        text-align: center; font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #22d3ee, #818cf8);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 20px; letter-spacing: -1px;
+        margin-bottom: 10px;
     }}
 
-    /* TARJETA DEL DIBUJO */
-    .card-ahorcado {{
-        background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(12px); border-radius: 24px; padding: 20px;
-        width: 140px; margin: 0 auto 15px auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    }}
-    .arte-ascii {{
-        font-family: 'JetBrains Mono', monospace; font-size: 14px;
-        color: {color_estado}; line-height: 1.1; white-space: pre; text-align: left;
+    /* CONTENEDOR DE JUEGO */
+    .game-card {{
+        background: #0f172a; border: 1px solid #1e293b; border-radius: 20px;
+        padding: 15px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }}
 
-    /* BADGE DE VIDAS */
-    .status-badge {{
-        background: {color_estado}22; color: {color_estado}; padding: 5px 15px;
-        border-radius: 100px; font-weight: 700; font-size: 13px;
-        border: 1px solid {color_estado}44; width: fit-content; margin: 0 auto 20px auto;
+    /* ARTE ASCII COMPACTO */
+    .ascii-box {{
+        font-family: 'JetBrains Mono', monospace; font-size: 12px;
+        color: {accent}; line-height: 1; white-space: pre; 
+        display: flex; justify-content: center; margin-bottom: 10px;
     }}
 
-    /* PALABRA */
-    .palabra-display {{
-        font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 900;
-        letter-spacing: 10px; color: #ffffff; text-align: center; margin: 25px 0;
+    /* PALABRA EN CAJAS */
+    .word-display {{
+        display: flex; justify-content: center; gap: 8px; margin: 15px 0;
+    }}
+    .letter-slot {{
+        font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800;
+        border-bottom: 3px solid #334155; width: 30px; text-align: center; color: #fff;
     }}
 
-    /* BOTONES DEL TECLADO */
+    /* TECLADO UNIDO (EL FONDO QUE PEDISTE) */
+    .keyboard-bg {{
+        background: #1e293b; padding: 12px; border-radius: 16px;
+        display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+        border: 1px solid #334155;
+    }}
+
+    /* BOTONES ESTILO KEYCAP */
     div[data-testid="column"] button {{
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #94a3b8 !important; border-radius: 12px !important;
-        height: 45px !important; font-weight: 700 !important;
-        transition: all 0.2s ease !important;
+        background: #334155 !important; border: none !important;
+        color: #f8fafc !important; border-radius: 8px !important;
+        height: 40px !important; font-weight: 700 !important;
+        font-size: 14px !important; transition: 0.2s !important;
     }}
     div[data-testid="column"] button:hover {{
-        border-color: #38bdf8 !important; color: #38bdf8 !important;
-        transform: translateY(-2px); background: rgba(56, 189, 248, 0.1) !important;
+        background: {accent} !important; color: #020617 !important;
+        transform: scale(1.05);
     }}
 
-    /* BOTÓN ARRIESGAR */
+    /* BOTÓN ARRIESGAR DERECHA */
+    .btn-bet-container {{ display: flex; justify-content: flex-end; margin-top: 15px; }}
     .stButton > button[key*="btn-arr"] {{
         background: linear-gradient(135deg, #f59e0b, #d97706) !important;
         color: white !important; border: none !important;
-        box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3) !important;
-        border-radius: 14px !important;
+        width: 120px !important; font-size: 12px !important;
     }}
 
-    /* LIMPIEZA INTERFAZ */
+    /* ELIMINAR ESPACIOS DE STREAMLIT */
+    .block-container {{ padding-top: 2rem !important; }}
     #MainMenu, footer, header {{ visibility: hidden; }}
     </style>
     """, unsafe_allow_html=True)
 
-def obtener_dibujo(v):
-    etapas = [
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
-        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
-        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
-        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
-        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n========="
+def draw(v):
+    stages = [
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=====",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=====",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=====",
+        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=====",
+        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=====",
+        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=====",
+        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n====="
     ]
-    return etapas[v]
+    return stages[v]
 
-# --- 3. FLUJO DEL JUEGO ---
-if not s["palabra"]:
-    st.markdown("<h1 class='header-title'>AHORCADO ONLINE</h1>", unsafe_allow_html=True)
-    with st.container():
-        input_p = st.text_input("PALABRA SECRETA", type="password", help="Escribe la palabra para que otros adivinen")
-        if st.button("CREAR SALA", use_container_width=True):
-            if input_p:
-                s.update({"palabra": input_p.lower().strip(), "usadas": [], "vidas": 6, "victoria": False})
+# --- 3. LÓGICA DE INTERFAZ ---
+if not s["p"]:
+    st.markdown("<div class='title'>AHORCADO ONLINE</div>", unsafe_allow_html=True)
+    with st.form("setup"):
+        p_input = st.text_input("PALABRA SECRETA", type="password")
+        if st.form_submit_button("CREAR PARTIDA", use_container_width=True):
+            if p_input:
+                s.update({"p": p_input.lower().strip(), "u": [], "v": 6, "win": False})
                 st.rerun()
 else:
-    ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["victoria"]
+    win = all(l in s["u"] or l == " " for l in s["p"]) or s["win"]
     
-    if ganado or s["vidas"] <= 0:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        if ganado:
+    if win or s["v"] <= 0:
+        st.markdown("<div class='game-card' style='text-align:center;'>", unsafe_allow_html=True)
+        if win:
             st.balloons()
-            st.markdown("<h2 style='color:#10b981; text-align:center;'>¡VICTORIA!</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color:#22d3ee;'>¡VICTORIA!</h2>", unsafe_allow_html=True)
         else:
-            st.markdown("<h2 style='color:#ef4444; text-align:center;'>FIN DEL JUEGO</h2>", unsafe_allow_html=True)
-        
-        st.markdown(f"<p style='text-align:center; font-size:20px;'>La palabra era: <b>{s['palabra'].upper()}</b></p>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color:#f87171;'>JUEGO TERMINADO</h2>", unsafe_allow_html=True)
+        st.markdown(f"LA PALABRA ERA: <b>{s['p'].upper()}</b>", unsafe_allow_html=True)
         if st.button("NUEVA PARTIDA", use_container_width=True):
-            s.update({"palabra": "", "usadas": [], "vidas": 6, "victoria": False, "arriesgando": False})
+            s.update({"p": "", "u": [], "v": 6, "win": False, "bet": False})
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
     else:
-        # Pantalla Principal
+        # Pantalla de Juego Compacta
+        st.markdown(f"<div class='title'>AHORCADO ONLINE</div>", unsafe_allow_html=True)
         st.markdown(f"""
-            <div class='header-title' style='font-size:1.5rem; margin-bottom:10px;'>AHORCADO ONLINE</div>
-            <div class='card-ahorcado'><div class='arte-ascii'>{obtener_dibujo(s['vidas'])}</div></div>
-            <div class='status-badge'>INTENTOS: {s['vidas']} / 6</div>
+            <div class='game-card'>
+                <div class='ascii-box'>{draw(s['v'])}</div>
+                <div style='text-align:center; font-size:12px; color:#94a3b8; font-weight:700;'>
+                    VIDAS: {s['v']} / 6
+                </div>
+                <div class='word-display'>
+                    {"".join([f"<div class='letter-slot'>{l.upper() if l in s['u'] or l == ' ' else ''}</div>" for l in s['p']])}
+                </div>
+            </div>
             """, unsafe_allow_html=True)
 
-        visual = "".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
-        st.markdown(f"<div class='palabra-display'>{visual}</div>", unsafe_allow_html=True)
-
-        # Teclado Pro
+        # Teclado en fondo unido
+        st.markdown("<div class='keyboard-bg'>", unsafe_allow_html=True)
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         cols = st.columns(7)
         for i, letra in enumerate(abc):
             l_min = letra.lower()
             with cols[i % 7]:
-                if l_min in s["usadas"]:
-                    color_l = "#10b981" if l_min in s["palabra"] else "#475569"
-                    st.markdown(f"<div style='text-align:center; color:{color_l}; font-weight:900; height:45px; line-height:45px; font-size:18px;'>{letra}</div>", unsafe_allow_html=True)
+                if l_min in s["u"]:
+                    color_l = "#22d3ee" if l_min in s["p"] else "#475569"
+                    st.markdown(f"<div style='text-align:center; color:{color_l}; font-weight:900; height:40px; line-height:40px;'>{letra}</div>", unsafe_allow_html=True)
                 else:
                     if st.button(letra, key=f"btn-{letra}"):
-                        s["usadas"].append(l_min)
-                        if l_min not in s["palabra"]: s["vidas"] -= 1
+                        s["u"].append(l_min)
+                        if l_min not in s["p"]: s["v"] -= 1
                         st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        # Botón Arriesgar
-        st.markdown("<br>", unsafe_allow_html=True)
-        izq, der = st.columns([0.6, 0.4])
-        with der:
+        # Arriesgar
+        st.markdown("<div class='btn-bet-container'>", unsafe_allow_html=True)
+        c1, c2 = st.columns([0.6, 0.4])
+        with c2:
             if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
-                s["arriesgando"] = not s["arriesgando"]
+                s["bet"] = not s["bet"]
                 st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        if s["arriesgando"]:
-            intento = st.text_input("¿CUÁL ES LA PALABRA?", key="input_final").lower().strip()
-            if st.button("ENVIAR RESPUESTA", use_container_width=True):
-                if intento == s["palabra"]: s["victoria"] = True
-                else: s["vidas"] = 0
+        if s["bet"]:
+            ans = st.text_input("SOLUCIÓN:", key="ans").lower().strip()
+            if st.button("ENVIAR", use_container_width=True):
+                if ans == s["p"]: s["win"] = True
+                else: s["v"] = 0
                 st.rerun()
