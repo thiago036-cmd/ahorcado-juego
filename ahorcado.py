@@ -8,7 +8,6 @@ st_autorefresh(interval=2000, key="sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    /* Diseño de teclado limpio y adaptable */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
         grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important; 
@@ -16,17 +15,26 @@ st.markdown("""<style>
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(4, 1fr) !important; } }
     
-    /* Botones sin bordes */
+    /* CENTRADO TOTAL */
     button { 
         background:#1c2128 !important; 
-        border: none !important; /* BORDE ELIMINADO */
+        border: none !important; 
         border-radius:8px !important; 
         height:60px !important; width:100% !important;
-        display: flex !important; align-items: center !important; justify-content: center !important;
-        transition: background 0.3s;
+        display: flex !important; 
+        align-items: center !important; /* Centra vertical */
+        justify-content: center !important; /* Centra horizontal */
+        padding: 0 !important; /* Elimina espacios extra */
+    }
+    button p { 
+        color:white !important; 
+        font-weight:700 !important; 
+        font-size:24px !important; 
+        margin:0 !important; /* Elimina el margen por defecto de Streamlit */
+        line-height: 1 !important; /* Evita que la fuente empuje hacia abajo */
+        display: block !important;
     }
     button:hover { background:#30363d !important; }
-    button p { color:white !important; font-weight:700 !important; font-size:24px !important; margin:0 !important; }
     button:disabled { opacity:0.3 !important; }
     
     .w { font-size:40px; font-weight:900; letter-spacing:12px; text-align:center; color:#58a6ff; margin:20px 0; }
