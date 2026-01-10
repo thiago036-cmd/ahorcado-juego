@@ -18,7 +18,7 @@ st.markdown("""<style>
     /* MEGA BORDE 3D: 20px de ancho abajo */
     button { 
         background:#1c2128 !important; border:30px solid #000 !important; 
-        border-bottom: 20px solid #000 !important; border-radius:20px !important; 
+        border-bottom: 100px solid #000 !important; border-radius:20px !important; 
         height:90px !important; width:100% !important;
         padding: 0 0 20px 0 !important; /* Centrado visual para borde gigante */
         display: flex !important; align-items: center !important; justify-content: center !important;
@@ -68,5 +68,6 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
 
 
