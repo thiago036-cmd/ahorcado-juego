@@ -1,79 +1,31 @@
 import streamlit as st
 import time
 
-# --- SERVIDOR (MEMORIA COMPARTIDA) ---
-@st.cache_resource
-def obtener_servidor():
-    return {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False}
+# --- ESTADO DEL JUEGO ---
+if "srv" not in st.session_state:
+    st.session_state.srv = {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False}
 
-srv = obtener_servidor()
+s = st.session_state.srv
 
-st.set_page_config(page_title="Ahorcado Pro", layout="centered")
+def reiniciar():
+    st.session_state.srv = {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False}
+    st.rerun()
 
-# --- CSS DEFINITIVO: BOTONES GRANDES Y DISEÑO FIJO ---
+# --- ESTILOS SIMPLES ---
 st.markdown("""
     <style>
-    /* Forzar que las letras no se amontonen ni se dupliquen */
-    [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: center !important;
-        gap: 4px !important;
-    }
-    
-    div[data-testid="stHorizontalBlock"] > div {
-        flex: 1 1 0% !important;
-        min-width: 0px !important;
-    }
-
-    /* Dibujo ASCII */
-    .dibujo-box {
-        font-family: 'Courier New', Courier, monospace;
-        background-color: #111; color: #00ff00; padding: 15px;
-        border-radius: 10px; line-height: 1.1; white-space: pre;
-        border: 2px solid #444; font-size: 22px;
-        display: inline-block;
-    }
-
-    /* Vidas con Corazón */
-    .vidas-container {
-        display: inline-block;
-        vertical-align: top;
-        margin-left: 20px;
-        color: white;
-        font-size: 26px;
-        font-weight: bold;
-        text-align: left;
-    }
-
-    /* Palabra Secreta (Grande y Amarilla) */
-    .word-box { 
-        font-size: 45px; letter-spacing: 12px; text-align: center; 
-        margin: 20px 0; color: #FFD700; background: #262730; 
-        border-radius: 15px; padding: 25px; font-family: monospace;
-        width: 100%;
-        border: 2px solid #444;
-    }
-
-    /* BOTONES DEL TECLADO: MÁS GRANDES */
-    .stButton > button {
-        width: 100% !important;
-        height: 65px !important; 
-        font-size: 22px !important; 
-        font-weight: bold !important;
-        border-radius: 10px !important;
-        background-color: #31333F !important;
-        border: 1px solid #555 !important;
-    }
+    .palabra { font-size: 35px; font-weight: bold; color: #FFD700; text-align: center; letter-spacing: 8px; }
+    .vidas { font-size: 24px; font-weight: bold; color: #FF4B4B; }
+    /* Botones estándar para que no se esconda la letra en móvil */
+    .stButton > button { width: 100%; height: 50px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-def obtener_dibujo(i):
+def dibujo(i):
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\  | \n/ \  | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n/|\  | \n/    | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n/|\  | \n     | \n     | \n=======", 
+        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======", 
+        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======", 
+        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======", 
         " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======", 
         " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======", 
         " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======", 
@@ -81,71 +33,55 @@ def obtener_dibujo(i):
     ]
     return etapas[i]
 
-def reiniciar_todo():
-    srv.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False})
-    st.rerun()
-
-# --- ESTADOS ---
-ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"] if srv["palabra"] else False
-perdido = srv["intentos"] <= 0
+# --- PANTALLAS FINALES ---
+ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"] if s["palabra"] else False
 
 if ganado:
-    st.success("✨ ¡GANASTE!")
-    st.button("🔄 JUGAR OTRA VEZ", on_click=reiniciar_todo)
-elif perdido:
-    st.error(f"💀 PERDISTE. Era: {srv['palabra'].upper()}")
-    st.button("🔄 REINTENTAR", on_click=reiniciar_todo)
-elif not srv["palabra"]:
-    st.title("🏹 Nueva Partida")
-    p = st.text_input("Palabra secreta:", type="password")
-    if st.button("EMPEZAR"):
+    st.balloons()
+    st.success(f"🏆 ¡VICTORIA! LA PALABRA ERA: {s['palabra'].upper()}")
+    st.button("🔄 JUGAR OTRA VEZ", on_click=reiniciar)
+elif s["intentos"] <= 0:
+    st.error(f"💀 PERDISTE. LA PALABRA ERA: {s['palabra'].upper()}")
+    st.button("🔄 REINTENTAR", on_click=reiniciar)
+elif not s["palabra"]:
+    st.title("🏹 Ahorcado Online")
+    p = st.text_input("Escribe la palabra secreta:", type="password")
+    if st.button("🚀 EMPEZAR JUEGO"):
         if p:
-            srv.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
+            s["palabra"] = p.lower().strip()
             st.rerun()
 else:
     # --- INTERFAZ DE JUEGO ---
-    
-    # 1. Dibujo y Vidas ❤️
-    st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div>
-            <div class="vidas-container">Vidas:<br>❤️ {srv["intentos"]}</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # 2. Adivinar completa
-    adivina = st.text_input("¿Sabes la palabra?", key="in_game").lower().strip()
-    if st.button("🎯 ADIVINAR TODO", use_container_width=True):
-        if adivina == srv["palabra"]: srv["gano_directo"] = True
-        else: srv["intentos"] = 0
-        st.rerun()
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.code(dibujo(s["intentos"]))
+    with c2:
+        st.markdown(f"<div class='vidas'>Vidas: ❤️ {s['intentos']}</div>", unsafe_allow_html=True)
+        adivina = st.text_input("🎯 ¿La sabes?", key="adv").lower().strip()
+        if st.button("ADIVINAR"):
+            if adivina == s["palabra"]: s["gano_directo"] = True
+            else: s["intentos"] = 0
+            st.rerun()
 
-    # 3. La palabra (Caja verde del dibujo)
-    visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
-    st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
+    # Palabra con guiones
+    txt = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
+    st.markdown(f"<p class='palabra'>{txt}</p>", unsafe_allow_html=True)
 
-    # 4. TECLADO: Lista fija para evitar cualquier duplicación
-    st.write("### Toca una letra:")
-    
-    filas_letras = [
-        ["A", "B", "C", "D", "E", "F", "G"],
-        ["H", "I", "J", "K", "L", "M", "N"],
-        ["Ñ", "O", "P", "Q", "R", "S", "T"],
-        ["U", "V", "W", "X", "Y", "Z"]
-    ]
+    # Teclado (7 columnas)
+    st.write("Selecciona una letra:")
+    abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+    cols = st.columns(7)
+    for i, letra in enumerate(abc):
+        l_min = letra.lower()
+        with cols[i % 7]:
+            if l_min in s["usadas"]:
+                # Emoji de acierto o fallo
+                st.write("✅" if l_min in s["palabra"] else "❌")
+            else:
+                if st.button(letra, key=f"k-{letra}"):
+                    s["usadas"].append(l_min)
+                    if l_min not in s["palabra"]: s["intentos"] -= 1
+                    st.rerun()
 
-    for fila in filas_letras:
-        cols = st.columns(7)
-        for i, letra in enumerate(fila):
-            l_min = letra.lower()
-            with cols[i]:
-                if l_min in srv["usadas"]:
-                    st.button("✅" if l_min in srv["palabra"] else "❌", key=f"k-{letra}", disabled=True)
-                else:
-                    if st.button(letra, key=f"k-{letra}"):
-                        srv["usadas"].append(l_min)
-                        if l_min not in srv["palabra"]: srv["intentos"] -= 1
-                        st.rerun()
-
-    time.sleep(3)
+    time.sleep(4)
     st.rerun()
