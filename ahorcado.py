@@ -1,12 +1,11 @@
 import streamlit as st
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Ahorcado Co-op Realtime", layout="centered")
+st.set_page_config(page_title="Ahorcado Realtime Pro", layout="centered")
 
-# --- MOTOR DE SESIÓN GLOBAL (COMPARTIDO POR TODOS) ---
+# --- MOTOR DE SESIÓN GLOBAL ---
 @st.cache_resource
 def obtener_estado_global():
-    # Esta estructura es la misma para todos los usuarios conectados
     return {
         "palabra": "", 
         "usadas": [], 
@@ -17,6 +16,20 @@ def obtener_estado_global():
 
 s = obtener_estado_global()
 
+# --- AUTO-REFRESH (JS) ---
+# Este bloque hace que la página se refresque sola cada 2 segundos
+st.components.v1.html(
+    """
+    <script>
+    window.parent.document.dispatchEvent(new CustomEvent("st:refresh"));
+    setTimeout(function() {
+        window.parent.location.reload();
+    }, 2000); 
+    </script>
+    """,
+    height=0,
+)
+
 # --- DISEÑO CSS ---
 color_alerta = "#00ff88" if s["intentos"] >= 4 else "#ffcc00" if s["intentos"] >= 2 else "#ff4444"
 
@@ -24,7 +37,6 @@ st.markdown(f"""
     <style>
     .stApp {{ background: #0f172a; color: white; }}
     
-    /* MUÑECO ESTABLE */
     .muneco-box {{
         background: #1a1a1a;
         border: 3px solid {color_alerta};
@@ -44,7 +56,6 @@ st.markdown(f"""
         text-align: left;
     }}
 
-    /* PALABRA SEGUIDA DE LAS VIDAS */
     .palabra-box {{
         font-size: 8vw !important;
         font-weight: 900;
@@ -53,7 +64,7 @@ st.markdown(f"""
         margin: 10px 0;
     }}
 
-    /* TECLADO MÓVIL: Evita verticalidad */
+    /* Teclado que no se rompe en móvil */
     div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
         flex-wrap: wrap !important;
@@ -74,7 +85,6 @@ st.markdown(f"""
         border-radius: 8px !important;
     }}
 
-    /* BOTÓN ARRIESGAR NARANJA ABAJO DERECHA */
     .stButton > button[key*="btn-arr"] {{
         background: #e67e22 !important;
         border: 2px solid white !important;
@@ -98,11 +108,11 @@ def get_dibujo(i):
     ]
     return etapas[i]
 
-# --- FLUJO DEL JUEGO ---
+# --- FLUJO ---
 if not s["palabra"]:
-    st.title("🎯 Nueva Partida Co-op")
+    st.title("🎯 Ahorcado Co-op")
     palabra_input = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 INICIAR JUEGO"):
+    if st.button("🚀 INICIAR"):
         if palabra_input:
             s["palabra"] = palabra_input.lower().strip()
             st.rerun()
@@ -112,17 +122,17 @@ else:
 
     if ganado:
         st.balloons()
-        st.success(f"🏆 ¡VICTORIA! LA PALABRA ERA: {s['palabra'].upper()}")
+        st.success(f"🏆 ¡VICTORIA! ERA: {s['palabra'].upper()}")
         st.button("🔄 NUEVA PARTIDA", on_click=reiniciar)
     elif perdido:
-        st.error(f"💀 JUEGO TERMINADO. LA PALABRA ERA: {s['palabra'].upper()}")
+        st.error(f"💀 DERROTA. ERA: {s['palabra'].upper()}")
         st.button("🔄 REINTENTAR", on_click=reiniciar)
     else:
         # 1. DIBUJO
         st.markdown(f'<div class="muneco-box"><div class="muneco-texto">{get_dibujo(s["intentos"])}</div></div>', unsafe_allow_html=True)
 
         # 2. VIDAS
-        st.markdown(f"<div style='text-align:center;'>❤️ <b>{s['intentos']}</b> VIDAS RESTANTES</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center;'>❤️ <b>{s['intentos']}</b> VIDAS</div>", unsafe_allow_html=True)
 
         # 3. PALABRA
         visual = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
@@ -145,19 +155,15 @@ else:
 
         # 5. ARRIESGAR (Abajo a la derecha)
         st.write("---")
-        c_espacio, c_arr = st.columns([0.6, 0.4])
+        c_esp, c_arr = st.columns([0.6, 0.4])
         with c_arr:
             if st.button("🔥 ARRIESGAR", key="btn-arr"):
                 s["arriesgando"] = not s["arriesgando"]
                 st.rerun()
 
         if s["arriesgando"]:
-            arr = st.text_input("Adivina la palabra:", key="fa").lower().strip()
+            arr = st.text_input("¿Qué palabra es?", key="fa").lower().strip()
             if st.button("✔️ ENVIAR"):
                 if arr == s["palabra"]: s["gano_directo"] = True
                 else: s["intentos"] = 0
                 st.rerun()
-        
-        # Botón de actualización manual por si alguien quiere refrescar
-        if st.button("🔄 Actualizar Sala"):
-            st.rerun()
