@@ -15,19 +15,19 @@ st.markdown("""<style>
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
-    /* FIX: Centrado de letra y ajuste de bordes */
+    /* Borde mucho más grande y efecto 3D reforzado */
     button { 
-        background:#161b22 !important; border:1px solid #000 !important; 
-        border-bottom: 5px solid #000 !important; border-radius:10px !important; 
-        height:50px !important; width:100% !important;
+        background:#161b22 !important; border:2px solid #000 !important; 
+        border-bottom: 8px solid #000 !important; border-radius:12px !important; 
+        height:55px !important; width:100% !important;
         padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important;
     }
-    button p { 
-        color:white !important; font-weight:900 !important; font-size:20px !important; 
-        margin: 0 !important; line-height: 1 !important;
-    }
-    button:active { border-bottom: 1px solid #000 !important; transform: translateY(4px); }
-    button:disabled { opacity:0.4 !important; border-bottom: 1px solid #000 !important; }
+    button p { color:white !important; font-weight:900 !important; font-size:22px !important; margin:0 !important; }
+    
+    /* Efecto de hundimiento al tocarlo */
+    button:active { border-bottom: 2px solid #000 !important; transform: translateY(6px); }
+    button:disabled { opacity:0.4 !important; border-bottom: 2px solid #000 !important; transform: translateY(4px); }
+    
     .w { font-size:35px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
 </style>""", unsafe_allow_html=True)
 
@@ -55,7 +55,7 @@ else:
     win = all(l in s.u or l==" " for l in s.p)
     if win or s.v <= 0:
         st.write("🏆 GANASTE" if win else f"💀 PERDISTE: {s.p.upper()}")
-        if st.button("OTRA"): s.p = ""; st.rerun()
+        if st.button("OTRA VEZ"): s.p = ""; st.rerun()
     else:
         draw(s.v)
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
