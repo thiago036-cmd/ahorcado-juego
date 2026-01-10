@@ -1,11 +1,10 @@
 import streamlit as st
 import time
 
-# --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Ahorcado Online", layout="centered")
+# --- CONFIGURACIÓN ---
+st.set_page_config(page_title="Ahorcado Online Pro", layout="centered")
 
-# --- CEREBRO COMPARTIDO (ESTO LO HACE ONLINE) ---
-# Al usar @st.cache_resource, esta variable 's' es la misma para TODOS
+# --- CEREBRO ONLINE (COMPARTIDO POR TODOS) ---
 @st.cache_resource
 def obtener_juego():
     return {
@@ -13,28 +12,23 @@ def obtener_juego():
         "usadas": [], 
         "intentos": 6, 
         "gano_directo": False,
-        "tema": "oscuro"
+        "tema": "oscuro",
+        "arriesgando": False  # Controla si se muestra el input de arriesgar
     }
 
 s = obtener_juego()
 
-# --- SELECTOR DE TEMA ---
-if st.button("🌓 Cambiar Color (Claro/Oscuro)"):
-    s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
-    st.rerun()
-
-# --- CSS FUERTE (BORDES GRUESOS Y TECLADO FIJO) ---
+# --- CSS: VERTICALIDAD, BORDES Y BOTÓN ARRIESGAR ---
 fondo = "#0E1117" if s["tema"] == "oscuro" else "#FFFFFF"
 texto = "#FFFFFF" if s["tema"] == "oscuro" else "#000000"
 btn_fondo = "#262730" if s["tema"] == "oscuro" else "#F0F2F6"
-# Aquí definimos el color del borde (Gris oscuro o gris claro)
-borde_color = "#444444" if s["tema"] == "oscuro" else "#999999"
+borde_color = "#444444" if s["tema"] == "oscuro" else "#CCCCCC"
 
 st.markdown(f"""
     <style>
     .stApp {{ background-color: {fondo}; color: {texto}; }}
     
-    /* 1. OBLIGAR A QUE SE VEA EN FILA EN EL CELULAR (NO LISTA) */
+    /* FUERZA 7 COLUMNAS HORIZONTALES EN EL TECLADO */
     div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
         flex-direction: row !important;
@@ -46,41 +40,35 @@ st.markdown(f"""
         min-width: 0px !important;
     }}
 
-    /* 2. BOTONES CON BORDE GRUESO Y TAMAÑO GRANDE */
+    /* ESTILO BOTONES GENERALES (BORDES GRUESOS) */
     .stButton > button {{
         width: 100% !important;
-        height: 60px !important;         /* Altura grande */
-        font-size: 20px !important;      /* Letra grande */
+        height: 55px !important;
         font-weight: bold !important;
         background-color: {btn_fondo} !important;
         color: {texto} !important;
-        
-        /* AQUÍ ESTÁ EL BORDE QUE PEDISTE */
         border: 3px solid {borde_color} !important; 
         border-radius: 10px !important;
-        
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0px !important;
     }}
-    
-    /* Estilos de texto */
-    .palabra-box {{ font-size: 35px; font-weight: bold; color: #FFD700; text-align: center; letter-spacing: 8px; margin: 20px 0; font-family: monospace; }}
+
+    /* DISEÑO VERTICAL CENTRADO */
+    .centrar {{ display: flex; justify-content: center; margin-bottom: 10px; }}
     .vidas-box {{ font-size: 24px; font-weight: bold; color: #FF4B4B; text-align: center; }}
-    pre {{ background-color: #111 !important; color: #00FF00 !important; font-size: 18px !important; border: 2px solid #555; }}
+    .palabra-box {{ font-size: 35px; font-weight: bold; color: #FFD700; text-align: center; letter-spacing: 8px; margin: 20px 0; font-family: monospace; }}
+    
+    pre {{ background-color: #111 !important; color: #00FF00 !important; font-size: 18px !important; border: 2px solid #555; width: fit-content; }}
     </style>
     """, unsafe_allow_html=True)
 
 def reiniciar():
-    s.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False})
+    s.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False, "arriesgando": False})
     st.rerun()
 
 def dibujo(i):
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\  | \n/ \  | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\  | \n/    | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\  | \n     | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======",
@@ -88,11 +76,15 @@ def dibujo(i):
     ]
     return etapas[i]
 
-# --- LÓGICA DE JUEGO ---
+# --- LÓGICA DE PANTALLAS ---
 if not s["palabra"]:
     st.title("🏹 Sala Online")
+    # Botón de tema arriba a la derecha
+    if st.button("🌓 Tema"):
+        s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
+        st.rerun()
     p = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 CREAR PARTIDA"):
+    if st.button("🚀 EMPEZAR PARTIDA"):
         if p:
             s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
@@ -107,27 +99,33 @@ else:
         st.error(f"💀 DERROTA. ERA: {s['palabra'].upper()}")
         st.button("🔄 REINTENTAR", on_click=reiniciar)
     else:
-        # PANTALLA DE JUEGO
-        st.markdown(f"<div class='vidas-box'>Vidas: ❤️ {s['intentos']}</div>", unsafe_allow_html=True)
-        
-        c1, c2 = st.columns([1, 1])
-        with c1: st.code(dibujo(s["intentos"]))
-        with c2:
-            adv = st.text_input("🎯 ¿La sabes?", key="adv").lower().strip()
-            if st.button("ENVIAR"):
-                if adv == s["palabra"]: s["gano_directo"] = True
-                else: s["intentos"] = 0
-                st.rerun()
+        # 1. DIBUJO
+        st.markdown(f'<div class="centrar"><pre>{dibujo(s["intentos"])}</pre></div>', unsafe_allow_html=True)
 
-        # Palabra
+        # 2. VIDAS
+        st.markdown(f"<div class='vidas-box'>Vidas: ❤️ {s['intentos']}</div>", unsafe_allow_html=True)
+
+        # 3. PALABRA SECRETA
         txt = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
         st.markdown(f"<div class='palabra-box'>{txt}</div>", unsafe_allow_html=True)
 
-        # TECLADO FIJO (7 COLUMNAS)
-        st.write("Teclado:")
-        abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+        # 4. BOTÓN ARRIESGAR (Abajo a la derecha)
+        col_espacio, col_arriesgar = st.columns([0.6, 0.4])
+        with col_arriesgar:
+            if st.button("🔥 ARRIESGAR"):
+                s["arriesgando"] = not s["arriesgando"]
+                st.rerun()
         
-        # Bucle exacto para filas de 7
+        if s["arriesgando"]:
+            adv = st.text_input("Escribe la palabra completa:", key="adv_box").lower().strip()
+            if st.button("CONFIRMAR ARRIESGAR"):
+                if adv == s["palabra"]: s["gano_directo"] = True
+                else: s.update({"intentos": 0, "arriesgando": False})
+                st.rerun()
+
+        # 5. TECLADO HORIZONTAL
+        st.write("Selecciona una letra:")
+        abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         for i in range(0, len(abc), 7):
             fila = abc[i:i+7]
             cols = st.columns(7)
@@ -135,7 +133,6 @@ else:
                 l_min = letra.lower()
                 with cols[j]:
                     if l_min in s["usadas"]:
-                        # Muestra si acertó o falló
                         st.write("✅" if l_min in s["palabra"] else "❌")
                     else:
                         if st.button(letra, key=f"k-{letra}"):
@@ -143,6 +140,10 @@ else:
                             if l_min not in s["palabra"]: s["intentos"] -= 1
                             st.rerun()
         
-        # ACTULIZACIÓN AUTOMÁTICA (ONLINE)
+        # 6. MODO TEMA (FLOTANTE)
+        if st.button("🌓 Tema"):
+            s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
+            st.rerun()
+
         time.sleep(2)
         st.rerun()
