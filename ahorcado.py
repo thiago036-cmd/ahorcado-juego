@@ -10,31 +10,31 @@ st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)) !important; 
-        gap: 8px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)) !important; 
+        gap: 10px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
-    /* Borde mucho más grande y efecto 3D reforzado */
+    /* Borde ultra ancho y diseño robusto */
     button { 
-        background:#161b22 !important; border:2px solid #000 !important; 
-        border-bottom: 8px solid #000 !important; border-radius:12px !important; 
-        height:55px !important; width:100% !important;
+        background:#1c2128 !important; border:3px solid #000 !important; 
+        border-bottom: 12px solid #000 !important; border-radius:15px !important; 
+        height:65px !important; width:100% !important;
         padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important;
     }
-    button p { color:white !important; font-weight:900 !important; font-size:22px !important; margin:0 !important; }
+    button p { color:white !important; font-weight:900 !important; font-size:24px !important; margin:0 !important; }
     
-    /* Efecto de hundimiento al tocarlo */
-    button:active { border-bottom: 2px solid #000 !important; transform: translateY(6px); }
-    button:disabled { opacity:0.4 !important; border-bottom: 2px solid #000 !important; transform: translateY(4px); }
+    /* Animación de presión profunda */
+    button:active { border-bottom: 3px solid #000 !important; transform: translateY(9px); }
+    button:disabled { opacity:0.4 !important; border-bottom: 3px solid #000 !important; transform: translateY(6px); }
     
-    .w { font-size:35px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
+    .w { font-size:38px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c = "#7cfc00"
     part = lambda cond, d: d if cond else ""
-    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;border:2px solid #30363d;height:160px;">
+    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:20px;border:3px solid #30363d;height:170px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
         {part(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
@@ -44,18 +44,18 @@ def draw(v):
         {part(v<=1, f'<line x1="140" y1="130" x2="115" y2="160" stroke="{c}" stroke-width="4"/>')}
         {part(v<=0, f'<line x1="140" y1="130" x2="165" y2="160" stroke="{c}" stroke-width="4"/>')}
     </svg></div>"""
-    cp.html(svg, height=170)
+    cp.html(svg, height=180)
 
 st.title("🕹️ AHORCADO")
 s = st.session_state
 if not s.p:
     p = st.text_input("PALABRA:", type="password")
-    if st.button("JUGAR"): s.p, s.u, s.v = p.lower().strip(), [], 6; st.rerun()
+    if st.button("INICIAR"): s.p, s.u, s.v = p.lower().strip(), [], 6; st.rerun()
 else:
     win = all(l in s.u or l==" " for l in s.p)
     if win or s.v <= 0:
-        st.write("🏆 GANASTE" if win else f"💀 PERDISTE: {s.p.upper()}")
-        if st.button("OTRA VEZ"): s.p = ""; st.rerun()
+        st.write("🏆 GANASTE" if win else f"💀 PALABRA: {s.p.upper()}")
+        if st.button("REINTENTAR"): s.p = ""; st.rerun()
     else:
         draw(s.v)
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
