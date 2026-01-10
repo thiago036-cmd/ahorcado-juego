@@ -9,10 +9,8 @@ def engine(): return {"p": "", "u": [], "v": 6, "win": False, "bet": False, "dar
 s = engine()
 st_autorefresh(interval=2000, key="sync")
 
-# 2. UI: TECLADO STICKER Y BLOQUE SÓLIDO
+# 2. DISEÑO UI (EL TECLADO QUE TE GUSTA Y EL MUÑECO CORREGIDO)
 bg, cd, tx, br = ("#0e1117","#161b22","#fff","#30363d") if s["dark"] else ("#fff","#f6f8fa","#1f2328","#d0d7de")
-
-# Letras blancas con borde negro para Modo Claro (Efecto Sticker)
 sticker_txt = "color: white !important; -webkit-text-stroke: 1.5px black !important; font-weight: 900 !important;" if not s["dark"] else f"color: {tx} !important; font-weight: 700 !important;"
 
 st.markdown(f"""<style>
@@ -20,24 +18,24 @@ st.markdown(f"""<style>
     .v-stack {{ display: flex; flex-direction: column; align-items: center; text-align: center; }}
     .card {{ background:{cd}; border:2px solid {br}; border-radius:24px; padding:30px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
     
-    /* EL BLOQUE INAMOVIBLE */
+    /* MUÑECO ESTILO DIBUJO (IDÉNTICO A TU IMAGEN) */
     .hangman-box {{ 
         font-family: 'Courier New', Courier, monospace !important; 
         font-size: 24px !important; 
-        background: #000; 
-        color: #00ffcc; 
+        background: #11151c; 
+        color: #7cfc00; 
         padding: 25px; 
         border-radius: 15px; 
         line-height: 1.2 !important; 
         display: inline-block; 
         text-align: left; 
-        white-space: pre !important; /* ESTO HACE QUE NO SE MUEVA */
-        border: 3px solid #58a6ff;
+        white-space: pre !important; 
+        border: 2px solid #30363d;
     }}
 
     .word-box {{ font-size: 40px; font-weight: 900; letter-spacing: 12px; margin: 20px 0; color: #58a6ff; }}
 
-    /* TECLADO STICKER */
+    /* TECLADO STICKER (COMO PEDISTE) */
     div[data-testid="column"] button {{
         background: {cd} !important;
         border: 3px solid black !important;
@@ -46,12 +44,11 @@ st.markdown(f"""<style>
         {sticker_txt}
         font-size: 22px !important;
         box-shadow: 4px 4px 0px black;
-        transition: 0.1s;
     }}
-    div[data-testid="column"] button:active {{ transform: translate(3px, 3px); box-shadow: none; }}
 </style>""", unsafe_allow_html=True)
 
-# 3. ETAPAS DEL MUÑECO (ESTRUCTURA RÍGIDA)
+# 3. ETAPAS DEL MUÑECO (ESTILO LINEAL DE TU IMAGEN)
+# He usado caracteres de líneas finas para que no parezcan bloques
 stages = {
     6: "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
     5: "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
@@ -79,7 +76,7 @@ else:
         st.markdown("<div class='card'>", unsafe_allow_html=True)
         if won: st.balloons(); st.markdown("### 🏆 ¡LO LOGRASTE!")
         else: st.markdown(f"### 💀 FIN DEL JUEGO<br>ERA: **{s['p'].upper()}**", unsafe_allow_html=True)
-        if st.button("🔄 JUGAR OTRA VEZ", use_container_width=True): s.update({"p":""}); st.rerun()
+        if st.button("🔄 VOLVER A JUGAR", use_container_width=True): s.update({"p":""}); st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.markdown(f"""<div class='v-stack'>
@@ -90,7 +87,6 @@ else:
             </div>
         </div>""", unsafe_allow_html=True)
         
-        # Teclado (Horizontal en cuadrícula)
         st.write("---")
         cols = st.columns(7)
         for i, l in enumerate("ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"):
@@ -103,11 +99,10 @@ else:
                     s["u"].append(l_low)
                     if l_low not in s["p"]: s["v"] -= 1
                     st.rerun()
-        
-        st.write("")
+
         if st.button("🔥 ARRIESGAR TODO", use_container_width=True): s["bet"] = not s["bet"]; st.rerun()
         if s["bet"]:
-            ans = st.text_input("🎯 ¿CUÁL ES LA PALABRA?", key="guess").lower().strip()
+            ans = st.text_input("🎯 ESCRIBE LA PALABRA:", key="guess").lower().strip()
             if st.button("✔️ ENVIAR"): 
                 if ans == s["p"]: s["win"] = True
                 else: s["v"] = 0
