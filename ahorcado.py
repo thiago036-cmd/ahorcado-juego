@@ -10,34 +10,32 @@ st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)) !important; 
-        gap: 12px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(55px, 1fr)) !important; 
+        gap: 15px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
-    /* Tecla más ancha, borde gigante y texto centrado */
+    /* MEGA BORDE 3D: 20px de ancho abajo */
     button { 
-        background:#1c2128 !important; border:3px solid #000 !important; 
-        border-bottom: 12px solid #000 !important; border-radius:12px !important; 
-        height:70px !important; width:100% !important;
-        padding: 0 0 10px 0 !important; /* Compensa el borde inferior para centrar la letra */
+        background:#1c2128 !important; border:4px solid #000 !important; 
+        border-bottom: 20px solid #000 !important; border-radius:15px !important; 
+        height:90px !important; width:100% !important;
+        padding: 0 0 15px 0 !important; /* Centrado visual para borde gigante */
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
-    button p { 
-        color:white !important; font-weight:900 !important; font-size:26px !important; 
-        margin:0 !important; line-height: 1 !important;
-    }
+    button p { color:white !important; font-weight:900 !important; font-size:30px !important; margin:0 !important; }
     
-    button:active { border-bottom: 3px solid #000 !important; transform: translateY(9px); }
-    button:disabled { opacity:0.4 !important; border-bottom: 4px solid #000 !important; transform: translateY(6px); }
+    /* Animación de presión extra profunda */
+    button:active { border-bottom: 4px solid #000 !important; transform: translateY(16px); }
+    button:disabled { opacity:0.4 !important; border-bottom: 5px solid #000 !important; transform: translateY(12px); }
     
-    .w { font-size:38px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; }
+    .w { font-size:40px; font-weight:900; letter-spacing:12px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c = "#7cfc00"
     part = lambda cond, d: d if cond else ""
-    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:20px;border:3px solid #30363d;height:170px;">
+    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:20px;border:3px solid #30363d;height:180px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
         {part(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
@@ -47,7 +45,7 @@ def draw(v):
         {part(v<=1, f'<line x1="140" y1="130" x2="115" y2="160" stroke="{c}" stroke-width="4"/>')}
         {part(v<=0, f'<line x1="140" y1="130" x2="165" y2="160" stroke="{c}" stroke-width="4"/>')}
     </svg></div>"""
-    cp.html(svg, height=180)
+    cp.html(svg, height=190)
 
 st.title("🕹️ AHORCADO")
 s = st.session_state
