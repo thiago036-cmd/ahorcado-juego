@@ -10,17 +10,17 @@ st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(55px, 1fr)) !important; 
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important; 
         gap: 15px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
     /* MEGA BORDE 3D: 20px de ancho abajo */
     button { 
-        background:#1c2128 !important; border:30px solid #000 !important; 
-        border-bottom: 0px solid #000 !important; border-radius:0px !important; 
+        background:#1c2128 !important; border:4px solid #000 !important; 
+        border-bottom: 20px solid #000 !important; border-radius:15px !important; 
         height:90px !important; width:100% !important;
-        padding: 0 0 0px 0 !important; /* Centrado visual para borde gigante */
+        padding: 0 0 15px 0 !important; /* Centrado visual para borde gigante */
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     button p { color:white !important; font-weight:900 !important; font-size:30px !important; margin:0 !important; }
@@ -68,9 +68,3 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
-
-
-
-
-
-
