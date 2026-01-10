@@ -143,4 +143,29 @@ else:
         for i, letra in enumerate(abc):
             l_min = letra.lower()
             with cols[i % 7]:
-                if
+                if l_min in s["u"]:
+                    # Letras ya usadas
+                    color_txt = "#A7F3D0" if l_min in s["p"] else "#F3F4F6"
+                    st.markdown(f"<div style='text-align:center; color:{color_txt}; font-weight:700; height:42px; line-height:42px;'>{letra}</div>", unsafe_allow_html=True)
+                else:
+                    if st.button(letra, key=f"btn-{letra}"):
+                        s["u"].append(l_min)
+                        if l_min not in s["p"]: s["v"] -= 1
+                        st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # Botón Arriesgar compacto
+        st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 15px;'>", unsafe_allow_html=True)
+        col1, col2 = st.columns([0.6, 0.4])
+        with col2:
+            if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
+                s["bet"] = not s["bet"]
+                st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if s["bet"]:
+            ans = st.text_input("Escribe la palabra completa:", key="ans").lower().strip()
+            if st.button("ENVIAR RESPUESTA", use_container_width=True):
+                if ans == s["p"]: s["win"] = True
+                else: s["v"] = 0
+                st.rerun()
