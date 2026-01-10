@@ -23,9 +23,9 @@ st.markdown(f"""<style>
 
 # 3. DIBUJOS DEL AHORCADO
 stages = [
-    "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
-    "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
-    "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+    "  +---+\n  |   |\n  O   |\n /|\  |\n / \  |\n      |\n=========",
+    "  +---+\n  |   |\n  O   |\n /|\  |\n /    |\n      |\n=========",
+    "  +---+\n  |   |\n  O   |\n /|\  |\n      |\n      |\n=========",
     "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
     "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
     "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
@@ -89,3 +89,4 @@ else:
                 st.rerun()
 
 st.caption("Hecho con ❤️ para una experiencia Pro")
+
