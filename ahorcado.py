@@ -1,18 +1,19 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. CONFIGURACIÓN DE ÉLITE ---
-st.set_page_config(page_title="Ahorcado online", layout="centered", initial_sidebar_state="collapsed")
+# --- 1. CONFIGURACIÓN DE ALTO NIVEL ---
+st.set_page_config(page_title="Ahorcado Online", layout="centered")
 
 @st.cache_resource
-def get_global_engine():
-    return {"word": "", "used": [], "lives": 6, "win": False, "betting": False}
+def obtener_motor_global():
+    return {"palabra": "", "usadas": [], "vidas": 6, "victoria": False, "arriesgando": False}
 
-s = get_global_engine()
-st_autorefresh(interval=2500, key="engine_sync")
+s = obtener_motor_global()
+# Sincronización automática cada 2.5 segundos para juego cooperativo
+st_autorefresh(interval=2500, key="sync_global")
 
-# --- 2. MOTOR ESTÉTICO (CSS CUSTOM) ---
-lives_color = "#10b981" if s["lives"] >= 4 else "#f59e0b" if s["lives"] >= 2 else "#ef4444"
+# --- 2. DISEÑO UI PREMIUM ---
+color_estado = "#10b981" if s["vidas"] >= 4 else "#f59e0b" if s["vidas"] >= 2 else "#ef4444"
 
 st.markdown(f"""
     <style>
@@ -20,63 +21,66 @@ st.markdown(f"""
     
     .stApp {{ background: radial-gradient(circle at top, #1e293b, #0f172a); color: #f8fafc; font-family: 'Inter', sans-serif; }}
     
-    /* CONTENEDOR PRINCIPAL */
-    .main-game-container {{ display: flex; flex-direction: column; align-items: center; padding-top: 20px; }}
+    /* CABECERA */
+    .header-title {{
+        text-align: center; font-weight: 900; font-size: 2.5rem;
+        background: linear-gradient(to right, #38bdf8, #818cf8);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 20px; letter-spacing: -1px;
+    }}
 
-    /* CANVAS DEL AHORCADO */
-    .hangman-card {{
+    /* TARJETA DEL DIBUJO */
+    .card-ahorcado {{
         background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px); border-radius: 24px; padding: 20px;
-        width: 140px; margin-bottom: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        backdrop-filter: blur(12px); border-radius: 24px; padding: 20px;
+        width: 140px; margin: 0 auto 15px auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }}
-    .hangman-art {{
+    .arte-ascii {{
         font-family: 'JetBrains Mono', monospace; font-size: 14px;
-        color: {lives_color}; line-height: 1.1; white-space: pre; text-align: left;
+        color: {color_estado}; line-height: 1.1; white-space: pre; text-align: left;
     }}
 
-    /* INDICADOR DE VIDAS */
-    .lives-badge {{
-        background: {lives_color}22; color: {lives_color}; padding: 4px 12px;
-        border-radius: 100px; font-weight: 700; font-size: 14px; margin-bottom: 20px;
-        border: 1px solid {lives_color}44;
+    /* BADGE DE VIDAS */
+    .status-badge {{
+        background: {color_estado}22; color: {color_estado}; padding: 5px 15px;
+        border-radius: 100px; font-weight: 700; font-size: 13px;
+        border: 1px solid {color_estado}44; width: fit-content; margin: 0 auto 20px auto;
     }}
 
-    /* PALABRA SECRETA */
-    .word-slot {{
-        font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 900;
-        letter-spacing: 8px; color: #ffffff; text-align: center; margin: 25px 0;
-        text-shadow: 0 0 20px rgba(255,255,255,0.2);
+    /* PALABRA */
+    .palabra-display {{
+        font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 900;
+        letter-spacing: 10px; color: #ffffff; text-align: center; margin: 25px 0;
     }}
 
-    /* TECLADO GAMER */
+    /* BOTONES DEL TECLADO */
     div[data-testid="column"] button {{
         background: rgba(255, 255, 255, 0.05) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         color: #94a3b8 !important; border-radius: 12px !important;
-        height: 42px !important; font-weight: 700 !important;
+        height: 45px !important; font-weight: 700 !important;
         transition: all 0.2s ease !important;
     }}
     div[data-testid="column"] button:hover {{
-        background: rgba(255, 255, 255, 0.1) !important;
         border-color: #38bdf8 !important; color: #38bdf8 !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px); background: rgba(56, 189, 248, 0.1) !important;
     }}
 
-    /* BOTÓN ARRIESGAR (PREMIUM) */
+    /* BOTÓN ARRIESGAR */
     .stButton > button[key*="btn-arr"] {{
         background: linear-gradient(135deg, #f59e0b, #d97706) !important;
         color: white !important; border: none !important;
         box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3) !important;
-        width: 100% !important; border-radius: 14px !important;
+        border-radius: 14px !important;
     }}
 
-    /* OCULTAR ELEMENTOS INNECESARIOS */
+    /* LIMPIEZA INTERFAZ */
     #MainMenu, footer, header {{ visibility: hidden; }}
     </style>
     """, unsafe_allow_html=True)
 
-def draw_art(lives):
-    stages = [
+def obtener_dibujo(v):
+    etapas = [
         "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
         "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
         "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
@@ -85,71 +89,69 @@ def draw_art(lives):
         "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
         "  +---+\n  |   |\n      |\n      |\n      |\n      |\n========="
     ]
-    return stages[lives]
+    return etapas[v]
 
-# --- 3. LÓGICA DE JUEGO ---
-if not s["word"]:
-    st.markdown("<h1 style='text-align:center;'>HANGMAN <span style='color:#38bdf8;'>ELITE</span></h1>", unsafe_allow_html=True)
+# --- 3. FLUJO DEL JUEGO ---
+if not s["palabra"]:
+    st.markdown("<h1 class='header-title'>AHORCADO ONLINE</h1>", unsafe_allow_html=True)
     with st.container():
-        word_input = st.text_input("CONFIGURAR PALABRA SECRETA", type="password", help="Solo tú sabes esto al inicio")
-        if st.button("CREAR PARTIDA", use_container_width=True):
-            if word_input:
-                s.update({"word": word_input.lower().strip(), "used": [], "lives": 6, "win": False})
+        input_p = st.text_input("PALABRA SECRETA", type="password", help="Escribe la palabra para que otros adivinen")
+        if st.button("CREAR SALA", use_container_width=True):
+            if input_p:
+                s.update({"palabra": input_p.lower().strip(), "usadas": [], "vidas": 6, "victoria": False})
                 st.rerun()
 else:
-    is_win = all(l in s["used"] or l == " " for l in s["word"]) or s["win"]
+    ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["victoria"]
     
-    if is_win or s["lives"] <= 0:
-        st.markdown("<div class='main-game-container'>", unsafe_allow_html=True)
-        if is_win:
+    if ganado or s["vidas"] <= 0:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        if ganado:
             st.balloons()
-            st.markdown(f"<h2 style='color:#10b981; text-align:center;'>VICTORIA TOTAL</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='color:#10b981; text-align:center;'>¡VICTORIA!</h2>", unsafe_allow_html=True)
         else:
-            st.markdown(f"<h2 style='color:#ef4444; text-align:center;'>MISIÓN FALLIDA</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='color:#ef4444; text-align:center;'>FIN DEL JUEGO</h2>", unsafe_allow_html=True)
         
-        st.markdown(f"<p style='text-align:center;'>LA PALABRA ERA: <b>{s['word'].upper()}</b></p>", unsafe_allow_html=True)
-        if st.button("REINICIAR SESIÓN", use_container_width=True):
-            s.update({"word": "", "used": [], "lives": 6, "win": False, "betting": False})
+        st.markdown(f"<p style='text-align:center; font-size:20px;'>La palabra era: <b>{s['palabra'].upper()}</b></p>", unsafe_allow_html=True)
+        if st.button("NUEVA PARTIDA", use_container_width=True):
+            s.update({"palabra": "", "usadas": [], "vidas": 6, "victoria": False, "arriesgando": False})
             st.rerun()
     else:
-        # PANTALLA DE JUEGO
+        # Pantalla Principal
         st.markdown(f"""
-            <div class='main-game-container'>
-                <div class='hangman-card'><div class='hangman-art'>{draw_art(s['lives'])}</div></div>
-                <div class='lives-badge'>STAMINA: {s['lives']} / 6</div>
-            </div>
+            <div class='header-title' style='font-size:1.5rem; margin-bottom:10px;'>AHORCADO ONLINE</div>
+            <div class='card-ahorcado'><div class='arte-ascii'>{obtener_dibujo(s['vidas'])}</div></div>
+            <div class='status-badge'>INTENTOS: {s['vidas']} / 6</div>
             """, unsafe_allow_html=True)
 
-        display_word = "".join([l.upper() if l in s["used"] or l == " " else "_" for l in s["word"]])
-        st.markdown(f"<div class='word-slot'>{display_word}</div>", unsafe_allow_html=True)
+        visual = "".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
+        st.markdown(f"<div class='palabra-display'>{visual}</div>", unsafe_allow_html=True)
 
-        # TECLADO TÁCTIL (Grid de 7 columnas optimizado para móviles)
+        # Teclado Pro
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         cols = st.columns(7)
-        for i, char in enumerate(abc):
-            low_char = char.lower()
+        for i, letra in enumerate(abc):
+            l_min = letra.lower()
             with cols[i % 7]:
-                if low_char in s["used"]:
-                    char_color = "#10b981" if low_char in s["word"] else "#475569"
-                    st.markdown(f"<div style='text-align:center; color:{char_color}; font-weight:900; height:42px; line-height:42px; font-size:18px;'>{char}</div>", unsafe_allow_html=True)
+                if l_min in s["usadas"]:
+                    color_l = "#10b981" if l_min in s["palabra"] else "#475569"
+                    st.markdown(f"<div style='text-align:center; color:{color_l}; font-weight:900; height:45px; line-height:45px; font-size:18px;'>{letra}</div>", unsafe_allow_html=True)
                 else:
-                    if st.button(char, key=f"btn-{char}"):
-                        s["used"].append(low_char)
-                        if low_char not in s["word"]: s["lives"] -= 1
+                    if st.button(letra, key=f"btn-{letra}"):
+                        s["usadas"].append(l_min)
+                        if l_min not in s["palabra"]: s["vidas"] -= 1
                         st.rerun()
 
-        # ÁREA DE ARRIESGAR (Abajo a la derecha)
+        # Botón Arriesgar
         st.markdown("<br>", unsafe_allow_html=True)
-        c_left, c_right = st.columns([0.6, 0.4])
-        with c_right:
-            if st.button("🔥 ARRIESGAR TODO", key="btn-arr"):
-                s["betting"] = not s["betting"]
+        izq, der = st.columns([0.6, 0.4])
+        with der:
+            if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
+                s["arriesgando"] = not s["arriesgando"]
                 st.rerun()
 
-        if s["betting"]:
-            final_guess = st.text_input("INTRODUCE LA PALABRA FINAL:", key="final_input").lower().strip()
-            if st.button("CONFIRMAR ENVÍO", use_container_width=True):
-                if final_guess == s["word"]: s["win"] = True
-                else: s["lives"] = 0
+        if s["arriesgando"]:
+            intento = st.text_input("¿CUÁL ES LA PALABRA?", key="input_final").lower().strip()
+            if st.button("ENVIAR RESPUESTA", use_container_width=True):
+                if intento == s["palabra"]: s["victoria"] = True
+                else: s["vidas"] = 0
                 st.rerun()
-
