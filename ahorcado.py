@@ -8,31 +8,33 @@ st_autorefresh(interval=2000, key="sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    /* BOTÓN RECTANGULAR ANCHO (Como el recuadro de la A) */
+    /* Diseño de teclado limpio y adaptable */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important; 
-        gap: 12px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important; 
+        gap: 10px !important; 
     }
-    @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(3, 1fr) !important; } }
+    @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(4, 1fr) !important; } }
     
+    /* Botones sin bordes */
     button { 
         background:#1c2128 !important; 
-        border:8px solid #000 !important; /* BORDE MUCHO MÁS GRANDE */
-        border-bottom: 16px solid #000 !important; border-radius:12px !important; 
-        height:75px !important; width:100% !important;
-        padding: 0 0 10px 0 !important;
+        border: none !important; /* BORDE ELIMINADO */
+        border-radius:8px !important; 
+        height:60px !important; width:100% !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
+        transition: background 0.3s;
     }
-    button p { color:white !important; font-weight:900 !important; font-size:28px !important; margin:0 !important; }
-    button:active { border-bottom: 6px solid #000 !important; transform: translateY(10px); }
-    button:disabled { opacity:0.4 !important; border-bottom: 8px solid #000 !important; }
+    button:hover { background:#30363d !important; }
+    button p { color:white !important; font-weight:700 !important; font-size:24px !important; margin:0 !important; }
+    button:disabled { opacity:0.3 !important; }
+    
     .w { font-size:40px; font-weight:900; letter-spacing:12px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c, p = "#7cfc00", lambda cond, d: d if cond else ""
-    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:20px;border:3px solid #30363d;height:170px;">
+    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;height:170px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
         {p(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
@@ -59,9 +61,3 @@ else:
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
         st.write(f"❤️ Vidas: {s.v}/6")
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
-        cols = st.columns(len(abc))
-        for i, l in enumerate(abc):
-            with cols[i]:
-                if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
-                elif st.button(l, key=l):
-                    s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
