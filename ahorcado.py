@@ -10,7 +10,7 @@ st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important; 
+        grid-template-columns: repeat(auto-fit, minmax(20px, 1fr)) !important; 
         gap: 15px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
@@ -68,3 +68,4 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
