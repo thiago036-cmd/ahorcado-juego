@@ -25,7 +25,7 @@ st.markdown("""<style>
     /* Botones de letras (Sin bordes y centrados) */
     button { 
         background:#1c2128 !important; border: none !important; border-radius:8px !important; 
-        height:60px !important; width:100% !important;
+        height:60px !important; width:150% !important;
         display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; 
     }
     button p { color:white !important; font-weight:700 !important; font-size:24px !important; margin:0 !important; line-height: 1 !important; }
@@ -74,6 +74,7 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
 
 
 
