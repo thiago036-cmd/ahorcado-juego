@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Configuración visual
-st.set_page_config(page_title="Ahorcado Pro Online", layout="centered")
+st.set_page_config(page_title="Ahorcado Pro", layout="centered")
 
 st.markdown("""
     <style>
@@ -27,48 +27,49 @@ if 'palabra' not in st.session_state:
     st.session_state.palabra = ""
     st.session_state.usadas = []
     st.session_state.intentos = 6
+    st.session_state.gano_directo = False
 
 # --- INICIO: JUGADOR 1 ---
 if not st.session_state.palabra:
     st.title("🎮 Configura la Partida")
-    p_ingresada = st.text_input("Escribe la palabra secreta:", type="password", help="Tus amigos no verán lo que escribes")
+    p_ingresada = st.text_input("Escribe la palabra secreta:", type="password")
     if st.button("🚀 EMPEZAR"):
         if p_ingresada:
             st.session_state.palabra = p_ingresada.lower().strip()
             st.rerun()
 
-# --- JUEGO: JUGADORES ---
+# --- JUEGO ---
 else:
     st.title("🗡️ Ahorcado")
     
-    # Dibujo y Vidas
     col_dibujo, col_info = st.columns([1, 1])
     with col_dibujo:
         st.code(obtener_dibujo(st.session_state.intentos))
     with col_info:
         st.metric("Vidas", st.session_state.intentos)
-        # ENTRADA DE TECLADO FÍSICO
-        teclado = st.text_input("Usa tu teclado (escribe una letra y pulsa Enter):", value="", max_chars=1).lower()
-        if teclado and teclado.isalpha():
-            if teclado not in st.session_state.usadas:
-                st.session_state.usadas.append(teclado)
-                if teclado not in st.session_state.palabra:
-                    st.session_state.intentos -= 1
+        
+        # EL ÚNICO CUADRO DE ENTRADA
+        entrada = st.text_input("Escribe una letra O la palabra completa:", key="input_juego").lower().strip()
+        
+        if st.button("Enviar"):
+            if entrada:
+                # Caso 1: Adivinar palabra entera
+                if len(entrada) > 1:
+                    if entrada == st.session_state.palabra:
+                        st.session_state.gano_directo = True
+                    else:
+                        st.session_state.intentos = 0
+                # Caso 2: Una sola letra
+                elif len(entrada) == 1:
+                    if entrada not in st.session_state.usadas:
+                        st.session_state.usadas.append(entrada)
+                        if entrada not in st.session_state.palabra:
+                            st.session_state.intentos -= 1
                 st.rerun()
 
     # Mostrar Palabra
-    progreso = "".join([l.upper() if l in st.session_state.usadas or l == " " else "_" for l in st.session_state.palabra])
+    progreso = "".join([l.upper() if l in st.session_state.usadas or l == " " or st.session_state.gano_directo else "_" for l in st.session_state.palabra])
     st.markdown(f"<div class='word-box'>{progreso}</div>", unsafe_allow_html=True)
-
-    # ARRIESGAR PALABRA COMPLETA
-    with st.expander("🤔 ¿Sabes la palabra entera?"):
-        arriesgar = st.text_input("Escribe la palabra completa:").lower().strip()
-        if st.button("🔥 ¡ADIVINAR TODO!"):
-            if arriesgar == st.session_state.palabra:
-                st.session_state.usadas.extend(list(arriesgar))
-            else:
-                st.session_state.intentos = 0 # Castigo por fallar la palabra completa
-            st.rerun()
 
     # TECLADO TÁCTIL (Botones)
     st.write("---")
@@ -87,15 +88,15 @@ else:
                     st.rerun()
 
     # FINAL DEL JUEGO
-    ganado = all(l in st.session_state.usadas or l == " " for l in st.session_state.palabra)
+    ganado = all(l in st.session_state.usadas or l == " " for l in st.session_state.palabra) or st.session_state.gano_directo
     
     if ganado:
         st.balloons()
-        st.success(f"¡VICTORIA! Era: {st.session_state.palabra.upper()}")
+        st.success(f"¡VICTORIA! La palabra era: {st.session_state.palabra.upper()}")
         if st.button("🔄 Nueva Partida"):
-            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.rerun()
+            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.session_state.gano_directo = False; st.rerun()
             
     elif st.session_state.intentos <= 0:
         st.error(f"¡PERDIERON! La palabra era: {st.session_state.palabra.upper()}")
         if st.button("🔄 Reintentar"):
-            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.rerun()
+            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.session_state.gano_directo = False; st.rerun()
