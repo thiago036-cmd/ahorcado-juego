@@ -1,127 +1,84 @@
 import streamlit as st
 
-# Configuración visual de la página
-st.set_page_config(page_title="Ahorcado Online", layout="centered")
+# Configuración visual
+st.set_page_config(page_title="Ahorcado Pro Online", layout="centered")
 
-# Estilos CSS para mejorar la apariencia en móvil
 st.markdown("""
     <style>
-    .ahorcado-container { font-family: monospace; font-size: 20px; line-height: 1.2; background-color: #1e1e1e; padding: 20px; border-radius: 10px; color: #ffcc00; }
-    .word-box { font-size: 45px; letter-spacing: 12px; text-align: center; margin: 20px; color: #ffffff; font-weight: bold; }
-    div.stButton > button { width: 100%; border-radius: 5px; height: 50px; font-weight: bold; }
+    .word-box { font-size: 45px; letter-spacing: 12px; text-align: center; margin: 20px; color: #ffffff; font-weight: bold; background: #333; border-radius: 15px; padding: 10px; }
+    .stButton > button { width: 100%; border-radius: 8px; height: 45px; font-size: 18px; }
     </style>
     """, unsafe_allow_html=True)
 
-# Dibujos del muñequito (basado en el estilo que te gustó)
 def obtener_dibujo(intentos):
     etapas = [
-        # 0: Muerto
-        """
-           +-------+
-           |       |
-           |       O
-           |      /|\\
-           |      / \\
-           |    [MORISTE]
-        """,
-        # 1: Un pie
-        """
-           +-------+
-           |       |
-           |       O
-           |      /|\\
-           |      / 
-           |
-        """,
-        # 2: Cuerpo y brazos
-        """
-           +-------+
-           |       |
-           |       O
-           |      /|\\
-           |      
-           |
-        """,
-        # 3: Cuerpo y un brazo
-        """
-           +-------+
-           |       |
-           |       O
-           |      /|
-           |      
-           |
-        """,
-        # 4: Tronco
-        """
-           +-------+
-           |       |
-           |       O
-           |       |
-           |      
-           |
-        """,
-        # 5: Cabeza
-        """
-           +-------+
-           |       |
-           |       O
-           |      
-           |      
-           |
-        """,
-        # 6: Vacío
-        """
-           +-------+
-           |       |
-           |       
-           |      
-           |      
-           |
-        """
+        """ +---+ \n |   | \n O   | \n/|\  | \n/ \  | \n     | """, # 0
+        """ +---+ \n |   | \n O   | \n/|\  | \n/    | \n     | """, # 1
+        """ +---+ \n |   | \n O   | \n/|\  | \n     | \n     | """, # 2
+        """ +---+ \n |   | \n O   | \n/|   | \n     | \n     | """, # 3
+        """ +---+ \n |   | \n O   | \n |   | \n     | \n     | """, # 4
+        """ +---+ \n |   | \n O   | \n     | \n     | \n     | """, # 5
+        """ +---+ \n |   | \n     | \n     | \n     | \n     | """  # 6
     ]
     return etapas[intentos]
 
-# --- MANEJO DE ESTADO (MULTIJUGADOR SIMULADO) ---
+# --- ESTADO DEL JUEGO ---
 if 'palabra' not in st.session_state:
     st.session_state.palabra = ""
     st.session_state.usadas = []
     st.session_state.intentos = 6
 
-# --- PANTALLA DE INICIO (JUGADOR 1) ---
+# --- INICIO: JUGADOR 1 ---
 if not st.session_state.palabra:
     st.title("🎮 Configura la Partida")
-    p_ingresada = st.text_input("Escribe la palabra secreta (se ocultará):", type="password")
-    if st.button("🚀 COMENZAR JUEGO"):
+    p_ingresada = st.text_input("Escribe la palabra secreta:", type="password", help="Tus amigos no verán lo que escribes")
+    if st.button("🚀 EMPEZAR"):
         if p_ingresada:
             st.session_state.palabra = p_ingresada.lower().strip()
             st.rerun()
 
-# --- PANTALLA DE JUEGO (JUGADORES) ---
+# --- JUEGO: JUGADORES ---
 else:
-    st.title("🗡️ Ahorcado Pro")
+    st.title("🗡️ Ahorcado")
     
-    # Mostrar el dibujo del muñequito
-    st.markdown(f"```\n{obtener_dibujo(st.session_state.intentos)}\n```")
-    
-    # Mostrar la palabra
-    progreso = ""
-    for letra in st.session_state.palabra:
-        if letra == " ": progreso += "  "
-        elif letra in st.session_state.usadas: progreso += letra.upper()
-        else: progreso += "_"
-    
+    # Dibujo y Vidas
+    col_dibujo, col_info = st.columns([1, 1])
+    with col_dibujo:
+        st.code(obtener_dibujo(st.session_state.intentos))
+    with col_info:
+        st.metric("Vidas", st.session_state.intentos)
+        # ENTRADA DE TECLADO FÍSICO
+        teclado = st.text_input("Usa tu teclado (escribe una letra y pulsa Enter):", value="", max_chars=1).lower()
+        if teclado and teclado.isalpha():
+            if teclado not in st.session_state.usadas:
+                st.session_state.usadas.append(teclado)
+                if teclado not in st.session_state.palabra:
+                    st.session_state.intentos -= 1
+                st.rerun()
+
+    # Mostrar Palabra
+    progreso = "".join([l.upper() if l in st.session_state.usadas or l == " " else "_" for l in st.session_state.palabra])
     st.markdown(f"<div class='word-box'>{progreso}</div>", unsafe_allow_html=True)
 
-    # Teclado para celular
-    st.write("### Elige una letra:")
+    # ARRIESGAR PALABRA COMPLETA
+    with st.expander("🤔 ¿Sabes la palabra entera?"):
+        arriesgar = st.text_input("Escribe la palabra completa:").lower().strip()
+        if st.button("🔥 ¡ADIVINAR TODO!"):
+            if arriesgar == st.session_state.palabra:
+                st.session_state.usadas.extend(list(arriesgar))
+            else:
+                st.session_state.intentos = 0 # Castigo por fallar la palabra completa
+            st.rerun()
+
+    # TECLADO TÁCTIL (Botones)
+    st.write("---")
     abc = "abcdefghijklmnopqrstuvwxyz"
-    cols = st.columns(7) 
-    
+    cols = st.columns(9)
     for i, letra in enumerate(abc):
-        with cols[i % 7]:
+        with cols[i % 9]:
             if letra in st.session_state.usadas:
-                label = "✅" if letra in st.session_state.palabra else "❌"
-                st.button(label, key=f"btn-{letra}", disabled=True)
+                color = "✅" if letra in st.session_state.palabra else "❌"
+                st.button(color, key=f"btn-{letra}", disabled=True)
             else:
                 if st.button(letra.upper(), key=f"btn-{letra}"):
                     st.session_state.usadas.append(letra)
@@ -129,22 +86,16 @@ else:
                         st.session_state.intentos -= 1
                     st.rerun()
 
-    # Verificar final
+    # FINAL DEL JUEGO
     ganado = all(l in st.session_state.usadas or l == " " for l in st.session_state.palabra)
     
     if ganado:
         st.balloons()
-        st.success(f"¡VICTORIA! La palabra era: {st.session_state.palabra.upper()}")
-        if st.button("🔄 Jugar otra vez"):
-            st.session_state.palabra = ""
-            st.session_state.usadas = []
-            st.session_state.intentos = 6
-            st.rerun()
+        st.success(f"¡VICTORIA! Era: {st.session_state.palabra.upper()}")
+        if st.button("🔄 Nueva Partida"):
+            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.rerun()
             
     elif st.session_state.intentos <= 0:
         st.error(f"¡PERDIERON! La palabra era: {st.session_state.palabra.upper()}")
-        if st.button("🔄 Intentar de nuevo"):
-            st.session_state.palabra = ""
-            st.session_state.usadas = []
-            st.session_state.intentos = 6
-            st.rerun()
+        if st.button("🔄 Reintentar"):
+            st.session_state.palabra = ""; st.session_state.usadas = []; st.session_state.intentos = 6; st.rerun()
