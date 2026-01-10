@@ -11,7 +11,7 @@ st.markdown("""<style>
     /* TECLAS MÁS ANCHAS: minmax de 120px para forzar el estiramiento en X */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; 
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)) !important; 
         gap: 15px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(3, 1fr) !important; } }
@@ -65,3 +65,4 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
