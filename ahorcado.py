@@ -10,23 +10,26 @@ st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)) !important; 
-        gap: 10px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)) !important; 
+        gap: 12px !important; 
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
-    /* Borde ultra ancho y diseño robusto */
+    /* Tecla más ancha, borde gigante y texto centrado */
     button { 
         background:#1c2128 !important; border:3px solid #000 !important; 
-        border-bottom: 12px solid #000 !important; border-radius:15px !important; 
-        height:65px !important; width:100% !important;
-        padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important;
+        border-bottom: 12px solid #000 !important; border-radius:12px !important; 
+        height:70px !important; width:100% !important;
+        padding: 0 0 10px 0 !important; /* Compensa el borde inferior para centrar la letra */
+        display: flex !important; align-items: center !important; justify-content: center !important;
     }
-    button p { color:white !important; font-weight:900 !important; font-size:24px !important; margin:0 !important; }
+    button p { 
+        color:white !important; font-weight:900 !important; font-size:26px !important; 
+        margin:0 !important; line-height: 1 !important;
+    }
     
-    /* Animación de presión profunda */
     button:active { border-bottom: 3px solid #000 !important; transform: translateY(9px); }
-    button:disabled { opacity:0.4 !important; border-bottom: 3px solid #000 !important; transform: translateY(6px); }
+    button:disabled { opacity:0.4 !important; border-bottom: 4px solid #000 !important; transform: translateY(6px); }
     
     .w { font-size:38px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
