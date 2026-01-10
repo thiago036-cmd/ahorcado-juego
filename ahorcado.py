@@ -4,10 +4,10 @@ import time
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Ahorcado Online", layout="centered")
 
-# --- MEMORIA COMPARTIDA (ONLINE) ---
+# --- CEREBRO COMPARTIDO (ESTO LO HACE ONLINE) ---
+# Al usar @st.cache_resource, esta variable 's' es la misma para TODOS
 @st.cache_resource
-def obtener_estado():
-    # Esta memoria es la misma para TODOS los usuarios
+def obtener_juego():
     return {
         "palabra": "", 
         "usadas": [], 
@@ -16,60 +16,59 @@ def obtener_estado():
         "tema": "oscuro"
     }
 
-s = obtener_estado()
+s = obtener_juego()
 
-# --- SELECTOR DE TEMA (CLARO / OSCURO) ---
-# Botón pequeño arriba para cambiar el color
-if st.button("🌓 Cambiar Tema"):
+# --- SELECTOR DE TEMA ---
+if st.button("🌓 Cambiar Color (Claro/Oscuro)"):
     s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
     st.rerun()
 
-# --- CSS PERSONALIZADO (AQUÍ ESTÁ EL TAMAÑO DEL BORDE) ---
-# Definimos colores según el tema
-bg_color = "#0E1117" if s["tema"] == "oscuro" else "#FFFFFF"
-text_color = "#FFFFFF" if s["tema"] == "oscuro" else "#000000"
-btn_bg = "#262730" if s["tema"] == "oscuro" else "#F0F2F6"
-btn_border = "#444444" if s["tema"] == "oscuro" else "#CCCCCC"
+# --- CSS FUERTE (BORDES GRUESOS Y TECLADO FIJO) ---
+fondo = "#0E1117" if s["tema"] == "oscuro" else "#FFFFFF"
+texto = "#FFFFFF" if s["tema"] == "oscuro" else "#000000"
+btn_fondo = "#262730" if s["tema"] == "oscuro" else "#F0F2F6"
+# Aquí definimos el color del borde (Gris oscuro o gris claro)
+borde_color = "#444444" if s["tema"] == "oscuro" else "#999999"
 
 st.markdown(f"""
     <style>
-    .stApp {{ background-color: {bg_color}; color: {text_color}; }}
+    .stApp {{ background-color: {fondo}; color: {texto}; }}
     
-    /* 1. FORZAR 7 COLUMNAS EN CELULAR (NO APILAR) */
+    /* 1. OBLIGAR A QUE SE VEA EN FILA EN EL CELULAR (NO LISTA) */
     div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 5px !important;
+        gap: 4px !important;
     }}
     div[data-testid="stHorizontalBlock"] > div {{
         flex: 1 1 0% !important;
         min-width: 0px !important;
     }}
 
-    /* 2. ESTILO DE LOS BOTONES (BORDE Y TAMAÑO) */
+    /* 2. BOTONES CON BORDE GRUESO Y TAMAÑO GRANDE */
     .stButton > button {{
         width: 100% !important;
-        height: 60px !important;       /* ALTURA DEL BOTÓN (MÁS GRANDE) */
-        font-size: 20px !important;    /* TAMAÑO DE LETRA */
+        height: 60px !important;         /* Altura grande */
+        font-size: 20px !important;      /* Letra grande */
         font-weight: bold !important;
-        background-color: {btn_bg} !important;
-        color: {text_color} !important;
+        background-color: {btn_fondo} !important;
+        color: {texto} !important;
         
-        /* BORDE GRUESO Y VISIBLE */
-        border: 2px solid {btn_border} !important; 
-        border-radius: 8px !important;
+        /* AQUÍ ESTÁ EL BORDE QUE PEDISTE */
+        border: 3px solid {borde_color} !important; 
+        border-radius: 10px !important;
         
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         padding: 0px !important;
     }}
-
+    
     /* Estilos de texto */
-    .palabra-box {{ font-size: 30px; font-weight: bold; color: #FFD700; text-align: center; letter-spacing: 5px; margin: 15px 0; font-family: monospace; }}
-    .vidas-box {{ font-size: 24px; font-weight: bold; color: #FF4B4B; text-align: center; margin-bottom: 10px; }}
-    pre {{ background-color: #111 !important; color: #00FF00 !important; font-size: 16px !important; border: 2px solid #333; }}
+    .palabra-box {{ font-size: 35px; font-weight: bold; color: #FFD700; text-align: center; letter-spacing: 8px; margin: 20px 0; font-family: monospace; }}
+    .vidas-box {{ font-size: 24px; font-weight: bold; color: #FF4B4B; text-align: center; }}
+    pre {{ background-color: #111 !important; color: #00FF00 !important; font-size: 18px !important; border: 2px solid #555; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -79,9 +78,9 @@ def reiniciar():
 
 def dibujo(i):
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\  | \n/ \  | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\  | \n/    | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\  | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======",
         " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======",
@@ -98,12 +97,11 @@ if not s["palabra"]:
             s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
 else:
-    # Verificar Ganar/Perder
     ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"]
     
     if ganado:
         st.balloons()
-        st.success(f"🏆 ¡VICTORIA! PALABRA: {s['palabra'].upper()}")
+        st.success(f"🏆 ¡VICTORIA! ERA: {s['palabra'].upper()}")
         st.button("🔄 NUEVA PARTIDA", on_click=reiniciar)
     elif s["intentos"] <= 0:
         st.error(f"💀 DERROTA. ERA: {s['palabra'].upper()}")
@@ -121,15 +119,15 @@ else:
                 else: s["intentos"] = 0
                 st.rerun()
 
-        # Mostrar Palabra
+        # Palabra
         txt = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
         st.markdown(f"<div class='palabra-box'>{txt}</div>", unsafe_allow_html=True)
 
-        # TECLADO FIJO (7 COLUMNAS) CON Ñ
+        # TECLADO FIJO (7 COLUMNAS)
         st.write("Teclado:")
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         
-        # Bucle para crear filas de 7 letras exactas
+        # Bucle exacto para filas de 7
         for i in range(0, len(abc), 7):
             fila = abc[i:i+7]
             cols = st.columns(7)
@@ -137,6 +135,7 @@ else:
                 l_min = letra.lower()
                 with cols[j]:
                     if l_min in s["usadas"]:
+                        # Muestra si acertó o falló
                         st.write("✅" if l_min in s["palabra"] else "❌")
                     else:
                         if st.button(letra, key=f"k-{letra}"):
@@ -144,6 +143,6 @@ else:
                             if l_min not in s["palabra"]: s["intentos"] -= 1
                             st.rerun()
         
-        # ACTUALIZACIÓN AUTOMÁTICA (CADA 2 SEGUNDOS)
+        # ACTULIZACIÓN AUTOMÁTICA (ONLINE)
         time.sleep(2)
         st.rerun()
