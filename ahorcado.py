@@ -1,8 +1,8 @@
 import streamlit as st
 import time
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado Online Pro", layout="centered")
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Ahorcado Pro Online", layout="centered")
 
 # --- CEREBRO ONLINE ---
 @st.cache_resource
@@ -18,82 +18,95 @@ def obtener_juego():
 
 s = obtener_juego()
 
-# --- LÓGICA DE COLOR PARA EL MUÑECO ---
-def obtener_color_muneco(vidas):
-    if vidas >= 5: return "#00FF00" # Verde
-    if vidas >= 2: return "#FFFF00" # Amarillo
-    return "#FF0000"                # Rojo
+# --- LÓGICA DE COLOR DINÁMICO ---
+def color_alerta(vidas):
+    if vidas >= 5: return "#00ff88" # Verde Neón
+    if vidas >= 3: return "#ffcc00" # Amarillo Oro
+    if vidas >= 2: return "#ff8800" # Naranja Alerta
+    return "#ff4444"                # Rojo Sangre
 
-color_muneco = obtener_color_muneco(s["intentos"])
+c_muneco = color_alerta(s["intentos"])
 
-# --- CSS DEFINITIVO ---
-fondo = "#0E1117" if s["tema"] == "oscuro" else "#FFFFFF"
-texto = "#FFFFFF" if s["tema"] == "oscuro" else "#000000"
-btn_fondo = "#262730" if s["tema"] == "oscuro" else "#F0F2F6"
-borde_color = "#444444" if s["tema"] == "oscuro" else "#CCCCCC"
+# --- CSS DE ALTO IMPACTO ---
+bg_main = "#0f172a" if s["tema"] == "oscuro" else "#f8fafc"
+card_bg = "rgba(30, 41, 59, 0.7)" if s["tema"] == "oscuro" else "rgba(255, 255, 255, 0.9)"
+text_main = "#f8fafc" if s["tema"] == "oscuro" else "#0f172a"
+border_glow = c_muneco if s["palabra"] else "#38bdf8"
 
 st.markdown(f"""
     <style>
-    .stApp {{ background-color: {fondo}; color: {texto}; }}
-    
-    /* MUÑECO CON COLOR DINÁMICO Y ANCHO FIJO */
-    .contenedor-dibujo {{
+    /* Fondo General */
+    .stApp {{
+        background: {bg_main};
+        color: {text_main};
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }}
+
+    /* Contenedor del Muñeco (Glassmorphism) */
+    .glass-card {{
+        background: {card_bg};
+        backdrop-filter: blur(10px);
+        border: 2px solid {c_muneco}44;
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px {c_muneco}22;
+        margin-bottom: 20px;
         display: flex;
         justify-content: center;
-        margin: 10px 0;
-    }}
-    .dibujo-fijo {{
-        background-color: #1a1a1a !important;
-        color: {color_muneco} !important; /* COLOR VARIABLE */
-        font-family: 'Courier New', monospace !important;
-        font-size: 18px !important;
-        line-height: 1.2 !important;
-        padding: 15px !important;
-        border: 3px solid {color_muneco}; /* El borde también cambia */
-        border-radius: 12px;
-        white-space: pre !important;
-        display: block !important;
-        width: 160px;
     }}
 
-    /* PALABRA AUTO-AJUSTABLE */
-    .palabra-display {{
-        font-size: 8vw !important;
-        font-weight: bold;
-        color: #FFD700;
+    pre {{
+        color: {c_muneco} !important;
+        text-shadow: 0 0 10px {c_muneco}aa;
+        font-size: 1.2rem !important;
+        line-height: 1.1 !important;
+        background: transparent !important;
+        border: none !important;
+        margin: 0 !important;
+    }}
+
+    /* Palabra Secreta Estilo Letrero */
+    .palabra-container {{
+        font-size: 9vw !important;
+        font-weight: 800;
+        color: #fbbf24;
+        text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
         text-align: center;
-        letter-spacing: 2px;
-        margin: 15px 0;
-        white-space: nowrap;
+        letter-spacing: 5px;
+        margin: 25px 0;
+        text-transform: uppercase;
     }}
 
-    /* TECLADO 7 COLUMNAS */
-    div[data-testid="stHorizontalBlock"] {{
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 2px !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div {{
-        flex: 1 1 0% !important;
-        min-width: 0px !important;
+    /* Botones de Letras (Teclado) */
+    div[data-testid="stHorizontalBlock"] button {{
+        background: {card_bg} !important;
+        border: 2px solid #334155 !important;
+        color: {text_main} !important;
+        border-radius: 12px !important;
+        height: 50px !important;
+        font-size: 1.1rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }}
 
-    .stButton > button {{
-        width: 100% !important;
-        height: 45px !important;
+    div[data-testid="stHorizontalBlock"] button:hover {{
+        border-color: #38bdf8 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.4) !important;
+    }}
+
+    /* Botón Arriesgar Pro */
+    .stButton > button[key*="btn-arriesgar"] {{
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 15px !important;
         font-weight: bold !important;
-        background-color: {btn_fondo} !important;
-        color: {texto} !important;
-        border: 2px solid {borde_color} !important; 
-        border-radius: 8px !important;
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4) !important;
     }}
 
-    /* ESTILO NARANJA PARA EL BOTÓN DE CONFIRMAR ARRIESGAR */
-    button[key*="confirmar"] {{
-        border: 2px solid #FF8C00 !important;
-        color: #FF8C00 !important;
-    }}
+    /* Símbolos de acierto/error */
+    .status-icon {{ font-size: 1.5rem; text-align: center; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -103,64 +116,73 @@ def reiniciar():
 
 def get_dibujo(i):
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======",
-        " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======",
-        " +---+ \n |   | \n     | \n     | \n     | \n     | \n=======" 
+        "  +---+ \n  |   | \n  O   | \n /|\\  | \n / \\  | \n      | \n=========",
+        "  +---+ \n  |   | \n  O   | \n /|\\  | \n /    | \n      | \n=========",
+        "  +---+ \n  |   | \n  O   | \n /|\\  | \n      | \n      | \n=========",
+        "  +---+ \n  |   | \n  O   | \n /|   | \n      | \n      | \n=========",
+        "  +---+ \n  |   | \n  O   | \n  |   | \n      | \n      | \n=========",
+        "  +---+ \n  |   | \n  O   | \n      | \n      | \n      | \n=========",
+        "  +---+ \n  |   | \n      | \n      | \n      | \n      | \n=========" 
     ]
     return etapas[i]
 
-# --- FLUJO DEL JUEGO ---
+# --- LÓGICA DE INTERFAZ ---
 if not s["palabra"]:
-    st.title("🏹 Sala Online")
-    p = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 INICIAR"):
-        if p:
-            s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
-            st.rerun()
+    st.markdown("<h1 style='text-align: center;'>🎯 Ahorcado Pro</h1>", unsafe_allow_html=True)
+    with st.container():
+        st.markdown("<div style='padding: 20px; border-radius: 20px; background: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
+        p = st.text_input("Ingresa la palabra para el desafío:", type="password", help="Los demás jugadores intentarán adivinarla")
+        if st.button("🚀 CREAR SALA", use_container_width=True):
+            if p:
+                s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
+                st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 else:
     ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"]
     
     if ganado:
         st.balloons()
-        st.success(f"🏆 ¡VICTORIA! ERA: {s['palabra'].upper()}")
-        st.button("🔄 NUEVA PARTIDA", on_click=reiniciar)
+        st.markdown(f"<h2 style='text-align:center; color:#00ff88;'>🏆 ¡VICTORIA MAGISTRAL!</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center;'>La palabra era: <b>{s['palabra'].upper()}</b></p>", unsafe_allow_html=True)
+        st.button("🔄 JUGAR OTRA VEZ", on_click=reiniciar, use_container_width=True)
     elif s["intentos"] <= 0:
-        st.error(f"💀 DERROTA. ERA: {s['palabra'].upper()}")
-        st.button("🔄 REINTENTAR", on_click=reiniciar)
+        st.markdown(f"<h2 style='text-align:center; color:#ff4444;'>💀 FIN DEL JUEGO</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center;'>Palabra oculta: <b>{s['palabra'].upper()}</b></p>", unsafe_allow_html=True)
+        st.button("🔄 REINTENTAR", on_click=reiniciar, use_container_width=True)
     else:
-        # 1. DIBUJO CON COLOR DINÁMICO
-        st.markdown(f'''
-            <div class="contenedor-dibujo">
-                <div class="dibujo-fijo">{get_dibujo(s["intentos"])}</div>
-            </div>
-            ''', unsafe_allow_html=True)
+        # 1. TARJETA DEL MUÑECO
+        st.markdown(f'<div class="glass-card"><pre>{get_dibujo(s["intentos"])}</pre></div>', unsafe_allow_html=True)
 
-        # 2. VIDAS
-        st.markdown(f"<div style='text-align:center; font-size:22px;'>❤️ Vidas: {s['intentos']}</div>", unsafe_allow_html=True)
+        # 2. STATUS BAR
+        c_vidas, c_tema = st.columns([0.8, 0.2])
+        with c_vidas:
+            st.markdown(f"<div style='font-size:1.5rem;'>❤️ <b>{s['intentos']}</b> vidas restantes</div>", unsafe_allow_html=True)
+        with c_tema:
+            if st.button("🌓"):
+                s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
+                st.rerun()
 
-        # 3. PALABRA
+        # 3. PALABRA ELÁSTICA
         visual = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
-        st.markdown(f"<div class='palabra-display'>{visual}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='palabra-container'>{visual}</div>", unsafe_allow_html=True)
 
-        # 4. ARRIESGAR
-        c1, c2 = st.columns([0.6, 0.4])
-        with c2:
-            if st.button("🔥 ARRIESGAR"):
+        # 4. SECCIÓN ARRIESGAR
+        col_empty, col_arr = st.columns([0.6, 0.4])
+        with col_arr:
+            if st.button("🔥 ARRIESGAR TODO", key="btn-arriesgar", use_container_width=True):
                 s["arriesgando"] = not s["arriesgando"]
                 st.rerun()
         
         if s["arriesgando"]:
-            arr = st.text_input("Palabra completa:", key="inp_arr").lower().strip()
-            if st.button("CONFIRMAR ENVÍO", key="confirmar"):
-                if arr == s["palabra"]: s["gano_directo"] = True
-                else: s.update({"intentos": 0, "arriesgando": False})
-                st.rerun()
+            with st.container():
+                arr = st.text_input("Escribe la palabra completa:", key="f_arr").lower().strip()
+                if st.button("CONFIRMAR ENVÍO", key="btn-confirm", use_container_width=True):
+                    if arr == s["palabra"]: s["gano_directo"] = True
+                    else: s.update({"intentos": 0, "arriesgando": False})
+                    st.rerun()
 
-        # 5. TECLADO
+        # 5. TECLADO ESTILIZADO
+        st.markdown("<p style='opacity:0.6; margin-top:20px;'>TECLADO VIRTUAL</p>", unsafe_allow_html=True)
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         for i in range(0, len(abc), 7):
             fila = abc[i:i+7]
@@ -169,16 +191,13 @@ else:
                 l_min = letra.lower()
                 with cols[j]:
                     if l_min in s["usadas"]:
-                        st.write("✅" if l_min in s["palabra"] else "❌")
+                        st.markdown(f"<div class='status-icon'>{'✅' if l_min in s['palabra'] else '❌'}</div>", unsafe_allow_html=True)
                     else:
-                        if st.button(letra, key=f"btn-{letra}"):
+                        if st.button(letra, key=f"k-{letra}"):
                             s["usadas"].append(l_min)
                             if l_min not in s["palabra"]: s["intentos"] -= 1
                             st.rerun()
-
-        if st.button("🌓 Tema"):
-            s["tema"] = "claro" if s["tema"] == "oscuro" else "oscuro"
-            st.rerun()
         
+        # Sincronización Online
         time.sleep(2)
         st.rerun()
