@@ -9,16 +9,16 @@ st_autorefresh(interval=2000, key="sync")
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(7,1fr); gap:5px; }
-    button { background:#161b22 !important; border:3px solid #000 !important; border-radius:8px; height:45px; box-shadow:2px 2px 0 #000; }
-    button p { color:white !important; -webkit-text-stroke:1.5px black; font-weight:900; font-size:18px; }
-    button:disabled { opacity:0.5 !important; }
+    button { background:#161b22 !important; border:1px solid #30363d !important; border-radius:8px; height:45px; }
+    button p { color:white !important; font-weight:700; font-size:18px; }
+    button:disabled { opacity:0.4 !important; }
     .w { font-size:32px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c = "#7cfc00"
     part = lambda cond, d: d if cond else ""
-    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;border:2px solid #30363d;height:160px;">
+    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;border:1px solid #30363d;height:160px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
         {part(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
