@@ -9,63 +9,63 @@ def obtener_juego():
     return {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False, "tema": "oscuro", "arriesgando": False}
 
 s = obtener_juego()
-color_muneco = "#00ff88" if s["intentos"] >= 4 else "#ffcc00" if s["intentos"] >= 2 else "#ff4444"
+color_alerta = "#00ff88" if s["intentos"] >= 4 else "#ffcc00" if s["intentos"] >= 2 else "#ff4444"
 
-# --- CSS ULTRA COMPACTO Y FIJADOR DE MUÑECO ---
+# --- CSS MEJORADO: BOTONES CON BORDES FUERTES ---
 st.markdown(f"""
     <style>
-    /* Eliminar espacios vacíos de Streamlit */
     .block-container {{ padding-top: 1rem !important; padding-bottom: 0rem !important; }}
-    div[data-testid="stVerticalBlock"] {{ gap: 0.5rem !important; }}
-    
     .stApp {{ background: #0f172a; color: white; }}
 
-    /* MUÑECO BLINDADO: NO SE MUEVE NI SE DESARMA */
+    /* MUÑECO BLINDADO */
     .muneco-box {{
-        background: #1e293b;
-        border: 2px solid {color_muneco};
+        background: #1a1a1a;
+        border: 3px solid {color_alerta};
         border-radius: 15px;
         padding: 10px;
-        display: block;
         width: fit-content;
-        margin: 0 auto;
-        line-height: 1 !important;
+        margin: 0 auto 10px auto;
     }}
     .muneco-texto {{
         font-family: 'Courier New', monospace !important;
-        font-size: 14px !important;
-        color: {color_muneco} !important;
-        white-space: pre !important; /* Mantiene la forma */
-        margin: 0 !important;
-        display: inline-block;
-        text-align: left;
+        font-size: 16px !important;
+        color: {color_alerta} !important;
+        white-space: pre !important;
+        line-height: 1.1 !important;
     }}
 
-    /* PALABRA COMPACTA */
+    /* PALABRA */
     .palabra-box {{
-        font-size: 7vw !important;
-        font-weight: 800;
+        font-size: 8vw !important;
+        font-weight: bold;
         color: #fbbf24;
         text-align: center;
-        letter-spacing: 3px;
         margin: 10px 0;
     }}
 
-    /* TECLADO PEQUEÑO PARA QUE QUEPA TODO */
+    /* TECLADO CON BORDES GRUESOS Y BOTONES GRANDES */
     div[data-testid="stHorizontalBlock"] button {{
-        height: 35px !important;
-        padding: 0 !important;
-        font-size: 14px !important;
-        border-radius: 5px !important;
-        background: #334155 !important;
+        height: 50px !important; /* Más alto para mejor toque */
+        font-size: 18px !important; /* Letra más grande */
+        font-weight: bold !important;
+        border-radius: 10px !important;
+        background: #1e293b !important;
         color: white !important;
-        border: 1px solid #475569 !important;
+        border: 3px solid #475569 !important; /* BORDE GRUESO */
+        transition: 0.2s;
+        margin-bottom: 5px;
+    }}
+    
+    div[data-testid="stHorizontalBlock"] button:hover {{
+        border-color: #38bdf8 !important;
+        background: #334155 !important;
     }}
 
     /* BOTÓN ARRIESGAR */
     .stButton > button[key*="btn-arr"] {{
         background: #e67e22 !important;
-        height: 40px !important;
+        border: 3px solid #d35400 !important;
+        height: 45px !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -75,22 +75,21 @@ def reiniciar():
     st.rerun()
 
 def get_dibujo(i):
-    # Dibujo simplificado para máxima estabilidad
     etapas = [
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========", #0
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========", #1
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========", #2
-        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========", #3
-        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========", #4
-        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========", #5
-        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n========="  #6
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n========="
     ]
     return etapas[i]
 
 if not s["palabra"]:
-    st.title("🏹 Ahorcado")
-    p = st.text_input("Palabra:", type="password")
-    if st.button("JUGAR"):
+    st.markdown("<h2 style='text-align:center;'>🎯 Nuevo Juego</h2>", unsafe_allow_html=True)
+    p = st.text_input("Palabra Secreta:", type="password")
+    if st.button("🚀 EMPEZAR", use_container_width=True):
         if p:
             s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6})
             st.rerun()
@@ -98,24 +97,24 @@ else:
     ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"]
     
     if ganado or s["intentos"] <= 0:
-        if ganado: st.success("¡GANASTE!")
-        else: st.error(f"PERDISTE: {s['palabra'].upper()}")
-        st.button("OTRA VEZ", on_click=reiniciar)
+        if ganado: st.success("¡VICTORIA!")
+        else: st.error(f"DERROTA. ERA: {s['palabra'].upper()}")
+        st.button("🔄 REINTENTAR", on_click=reiniciar, use_container_width=True)
     else:
-        # 1. MUÑECO (Usando div para control total)
+        # 1. DIBUJO
         st.markdown(f'<div class="muneco-box"><div class="muneco-texto">{get_dibujo(s["intentos"])}</div></div>', unsafe_allow_html=True)
 
-        # 2. VIDAS Y ARRIESGAR EN UNA FILA
-        c_v, c_a = st.columns([0.5, 0.5])
-        with c_v: st.markdown(f"❤️ **{s['intentos']}**")
+        # 2. VIDAS Y ARRIESGAR
+        c_v, c_a = st.columns([0.4, 0.6])
+        with c_v: st.markdown(f"<h3 style='margin:0;'>❤️ {s['intentos']}</h3>", unsafe_allow_html=True)
         with c_a: 
-            if st.button("🔥 ARRIESGAR", key="btn-arr"):
+            if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
                 s["arriesgando"] = not s["arriesgando"]
                 st.rerun()
 
         if s["arriesgando"]:
-            arr = st.text_input("Palabra:", key="fa").lower().strip()
-            if st.button("OK"):
+            arr = st.text_input("Palabra completa:", key="fa").lower().strip()
+            if st.button("ENVIAR", use_container_width=True):
                 if arr == s["palabra"]: s["gano_directo"] = True
                 else: s["intentos"] = 0
                 st.rerun()
@@ -124,7 +123,7 @@ else:
         v = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
         st.markdown(f'<div class="palabra-box">{v}</div>', unsafe_allow_html=True)
 
-        # 4. TECLADO COMPACTO
+        # 4. TECLADO (Bordes reforzados)
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         for i in range(0, len(abc), 7):
             cols = st.columns(7)
@@ -132,7 +131,7 @@ else:
                 l_min = letra.lower()
                 with cols[j]:
                     if l_min in s["usadas"]:
-                        st.write("✅" if l_min in s["palabra"] else "❌")
+                        st.markdown(f"<div style='text-align:center; font-size:20px;'>{'✅' if l_min in s['palabra'] else '❌'}</div>", unsafe_allow_html=True)
                     else:
                         if st.button(letra, key=f"k-{letra}"):
                             s["usadas"].append(l_min)
