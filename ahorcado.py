@@ -10,66 +10,73 @@ srv = obtener_servidor()
 
 st.set_page_config(page_title="Ahorcado Pro", layout="centered")
 
-# --- CSS DEFINITIVO PARA MÓVIL Y PC ---
+# --- CSS PARA ORDEN VERTICAL Y CORAZÓN ---
 st.markdown("""
     <style>
-    /* Dibujo ASCII centrado y sin romperse */
+    /* Contenedor principal alineado verticalmente */
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* Dibujo ASCII */
     .dibujo-box {
         font-family: 'Courier New', Courier, monospace;
         background-color: #111;
         color: #00ff00;
-        padding: 15px;
+        padding: 20px;
         border-radius: 10px;
-        line-height: 1.1;
+        line-height: 1.2;
         white-space: pre;
         border: 2px solid #444;
         text-align: center;
-        margin: 10px auto;
-        width: fit-content;
-        font-size: 20px;
+        font-size: 22px;
+        margin-bottom: 10px;
     }
 
-    /* Palabra oculta ajustable */
+    /* Contador de Vidas al lado del dibujo */
+    .vidas-text {
+        color: #ff4b4b;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Palabra oculta */
     .word-box { 
-        font-size: 35px; letter-spacing: 8px; text-align: center; 
-        margin: 20px 0; color: #FFD700; background: #262730; 
-        border-radius: 15px; padding: 15px; font-family: monospace;
+        font-size: 40px; 
+        letter-spacing: 10px; 
+        text-align: center; 
+        margin: 20px 0; 
+        color: #FFD700; 
+        background: #262730; 
+        border-radius: 15px; 
+        padding: 20px; 
+        font-family: monospace;
+        width: 100%;
     }
 
-    /* Contenedor del teclado para que NO se duplique */
-    .teclado-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 20px;
-    }
-
-    /* Ajuste de botones para que parezcan teclado de móvil */
+    /* Botones de letras */
     .stButton > button {
-        min-width: 45px !important;
-        height: 45px !important;
-        padding: 5px !important;
+        width: 100% !important;
+        height: 50px !important;
         font-weight: bold !important;
-    }
-
-    @media (max-width: 600px) {
-        .word-box { font-size: 25px; letter-spacing: 5px; }
-        .dibujo-box { font-size: 16px; }
     }
     </style>
     """, unsafe_allow_html=True)
 
 def obtener_dibujo(i):
-    # Texto puro para evitar que se mueva
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======", # 0
-        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======", # 1
-        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======", # 2
-        " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======", # 3
-        " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======", # 4
-        " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======", # 5
-        " +---+ \n |   | \n     | \n     | \n     | \n     | \n======="  # 6
+        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======",
+        " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======",
+        " +---+ \n |   | \n     | \n     | \n     | \n     | \n=======" 
     ]
     return etapas[i]
 
@@ -77,7 +84,7 @@ def reiniciar_todo():
     srv.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False})
     st.rerun()
 
-# --- FLUJO ---
+# --- LÓGICA DE ESTADOS ---
 ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"] if srv["palabra"] else False
 perdido = srv["intentos"] <= 0
 
@@ -85,7 +92,7 @@ if ganado:
     st.success("✨ ¡GANASTE!")
     st.button("🔄 NUEVA PARTIDA", on_click=reiniciar_todo)
 elif perdido:
-    st.error(f"💀 PERDISTE. La palabra era: {srv['palabra'].upper()}")
+    st.error(f"💀 PERDISTE. Era: {srv['palabra'].upper()}")
     st.button("🔄 REINTENTAR", on_click=reiniciar_todo)
 elif not srv["palabra"]:
     st.title("🏹 Sala Online")
@@ -95,26 +102,28 @@ elif not srv["palabra"]:
             srv.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
 else:
-    # JUEGO ACTIVO
-    st.markdown(f'<div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div>', unsafe_allow_html=True)
+    # --- JUEGO ACTIVO (ORDEN VERTICAL) ---
     
-    col1, col2 = st.columns(2)
-    col1.metric("Vidas", srv["intentos"])
-    with col2:
-        adivina = st.text_input("¿La sabes?", key="full").lower().strip()
-        if st.button("ADIVINAR"):
-            if adivina == srv["palabra"]: srv["gano_directo"] = True
-            else: srv["intentos"] = 0
-            st.rerun()
+    # 1. Dibujo
+    st.markdown(f'<center><div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div></center>', unsafe_allow_html=True)
+    
+    # 2. Vidas con Corazón (donde apuntaba la flecha)
+    st.markdown(f'<div class="vidas-text">Vidas: ❤️ {srv["intentos"]}</div>', unsafe_allow_html=True)
+    
+    # 3. Input para adivinar palabra completa
+    adivina = st.text_input("¿Ya sabes la palabra?", key="full_guess").lower().strip()
+    if st.button("ADIVINAR PALABRA"):
+        if adivina == srv["palabra"]: srv["gano_directo"] = True
+        else: srv["intentos"] = 0
+        st.rerun()
 
+    # 4. Espacio de la palabra
     visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
     st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
 
-    # TECLADO CORREGIDO: Usamos columnas pero controladas para que no se dupliquen
+    # 5. Teclado
     st.write("### Selecciona una letra:")
     abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    
-    # Creamos filas de 7 letras para que no se vea como una hilera infinita
     for fila in [abc[i:i+7] for i in range(0, len(abc), 7)]:
         cols = st.columns(7)
         for i, letra in enumerate(fila):
