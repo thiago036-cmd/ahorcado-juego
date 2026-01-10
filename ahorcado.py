@@ -128,7 +128,7 @@ def get_dibujo(i):
 
 # --- LÓGICA DE INTERFAZ ---
 if not s["palabra"]:
-    st.markdown("<h1 style='text-align: center;'>🎯 Ahorcado Pro</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>🎯 Ahorcado</h1>", unsafe_allow_html=True)
     with st.container():
         st.markdown("<div style='padding: 20px; border-radius: 20px; background: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
         p = st.text_input("Ingresa la palabra para el desafío:", type="password", help="Los demás jugadores intentarán adivinarla")
@@ -201,3 +201,4 @@ else:
         # Sincronización Online
         time.sleep(2)
         st.rerun()
+
