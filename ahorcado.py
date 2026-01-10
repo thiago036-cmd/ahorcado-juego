@@ -1,23 +1,32 @@
 import streamlit as st
 import time
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado Pro Vertical", layout="centered")
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Ahorcado Co-op", layout="centered")
 
+# --- MOTOR DE SESIÓN GLOBAL ---
+# Usamos cache_resource para que todos los que entren vean la misma variable 's'
 @st.cache_resource
-def obtener_juego():
-    return {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False, "tema": "oscuro", "arriesgando": False}
+def obtener_estado_global():
+    return {
+        "palabra": "", 
+        "usadas": [], 
+        "intentos": 6, 
+        "gano_directo": False,
+        "arriesgando": False,
+        "ultima_act": time.time()
+    }
 
-s = obtener_juego()
+s = obtener_estado_global()
+
+# --- CSS: TECLADO FLEXIBLE Y DISEÑO VERTICAL ---
 color_alerta = "#00ff88" if s["intentos"] >= 4 else "#ffcc00" if s["intentos"] >= 2 else "#ff4444"
 
-# --- CSS: VERTICALIDAD + BOTÓN ARRIESGAR ABAJO DERECHA ---
 st.markdown(f"""
     <style>
-    .block-container {{ padding-top: 1rem !important; padding-bottom: 2rem !important; }}
     .stApp {{ background: #0f172a; color: white; }}
-
-    /* 1. DIBUJO VERTICAL */
+    
+    /* MUÑECO VERTICAL Y CENTRADO */
     .muneco-box {{
         background: #1a1a1a;
         border: 3px solid {color_alerta};
@@ -34,44 +43,48 @@ st.markdown(f"""
         line-height: 1.1 !important;
     }}
 
-    /* 2. VIDAS */
-    .vidas-display {{ text-align: center; font-size: 20px; margin-bottom: 10px; font-weight: bold; }}
-
-    /* 3. PALABRA */
+    /* PALABRA SEGUIDA DE LAS VIDAS */
     .palabra-box {{
-        font-size: 9vw !important;
+        font-size: 8vw !important;
         font-weight: 900;
         color: #fbbf24;
         text-align: center;
-        margin-bottom: 20px;
-        letter-spacing: 4px;
+        margin: 10px 0;
     }}
 
-    /* 4. TECLADO (HORIZONTAL 7 COLUMNAS) */
-    div[data-testid="stHorizontalBlock"] button {{
-        height: 48px !important;
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        border-radius: 8px !important;
-        background: #1e293b !important;
-        color: white !important;
-        border: 3px solid #475569 !important;
+    /* TECLADO MÓVIL: Evita que las letras se pongan verticales */
+    .stHorizontalBlock {{
+        display: flex !important;
+        flex-wrap: wrap !important; /* Permite que bajen a la siguiente fila si no caben */
+        justify-content: center !important;
+        gap: 5px !important;
+    }}
+    
+    div[data-testid="stHorizontalBlock"] > div {{
+        flex: 1 1 12% !important; /* Fuerza un ancho mínimo para que entren 7 u 8 por fila */
+        min-width: 40px !important;
     }}
 
-    /* 5. BOTÓN ARRIESGAR (ESTILO ESPECIAL NARANJA) */
-    .stButton > button[key*="btn-arr"] {{
-        background: linear-gradient(135deg, #f39c12, #e67e22) !important;
-        border: 2px solid white !important;
-        color: white !important;
-        font-weight: bold !important;
+    .stButton > button {{
+        width: 100% !important;
         height: 45px !important;
-        border-radius: 10px !important;
+        padding: 0 !important;
+        font-weight: bold !important;
+        border: 2px solid #475569 !important;
+        border-radius: 8px !important;
+    }}
+
+    /* BOTÓN ARRIESGAR ABAJO A LA DERECHA */
+    .btn-arriesgar-container {{
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
     }}
     </style>
     """, unsafe_allow_html=True)
 
 def reiniciar():
-    s.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False, "arriesgando": False})
+    s.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False, "arriesgando": False, "ultima_act": time.time()})
     st.rerun()
 
 def get_dibujo(i):
@@ -86,61 +99,70 @@ def get_dibujo(i):
     ]
     return etapas[i]
 
-# --- FLUJO ---
+# --- LÓGICA DE UNIÓN AUTOMÁTICA ---
+# Esto hace que la página se refresque sola cada 3 segundos para ver cambios de otros
+if s["palabra"]:
+    st.empty() # Placeholder
+    # Solo refrescamos si no hemos ganado ni perdido
+    ganado_check = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"]
+    if not ganado_check and s["intentos"] > 0:
+        time.sleep(3)
+        st.rerun()
+
+# --- INTERFAZ ---
 if not s["palabra"]:
-    st.title("🎯 Crear Partida")
-    p = st.text_input("Escribe la palabra secreta:", type="password")
-    if st.button("🚀 EMPEZAR"):
+    st.title("🎯 Nueva Sesión")
+    p = st.text_input("Palabra secreta:", type="password")
+    if st.button("🚀 CREAR PARA TODOS"):
         if p:
-            s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6})
+            s.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "ultima_act": time.time()})
             st.rerun()
 else:
     ganado = all(l in s["usadas"] or l == " " for l in s["palabra"]) or s["gano_directo"]
     
     if ganado or s["intentos"] <= 0:
-        if ganado: st.balloons(); st.success("¡GANASTE!")
-        else: st.error(f"DERROTA. ERA: {s['palabra'].upper()}")
-        st.button("🔄 NUEVA PARTIDA", on_click=reiniciar, use_container_width=True)
+        if ganado: st.success("¡VICTORIA COLECTIVA!")
+        else: st.error(f"GAME OVER. ERA: {s['palabra'].upper()}")
+        st.button("🔄 NUEVA PARTIDA", on_click=reiniciar)
     else:
-        # 1. Muñeco
+        # 1. DIBUJO
         st.markdown(f'<div class="muneco-box"><div class="muneco-texto">{get_dibujo(s["intentos"])}</div></div>', unsafe_allow_html=True)
 
-        # 2. Vidas
-        st.markdown(f'<div class="vidas-display">❤️ {s["intentos"]} VIDAS</div>', unsafe_allow_html=True)
+        # 2. VIDAS
+        st.markdown(f"<div style='text-align:center;'>❤️ <b>{s['intentos']}</b> VIDAS</div>", unsafe_allow_html=True)
 
-        # 3. Palabra Secreta
-        v = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
-        st.markdown(f'<div class="palabra-box">{v}</div>', unsafe_allow_html=True)
+        # 3. PALABRA
+        visual = " ".join([l.upper() if l in s["usadas"] or l == " " else "_" for l in s["palabra"]])
+        st.markdown(f'<div class="palabra-box">{visual}</div>', unsafe_allow_html=True)
 
-        # 4. Teclado
+        # 4. TECLADO (Flexbox para evitar verticalidad)
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
-        for i in range(0, len(abc), 7):
-            cols = st.columns(7)
-            for j, letra in enumerate(abc[i:i+7]):
-                l_min = letra.lower()
-                with cols[j]:
-                    if l_min in s["usadas"]:
-                        st.markdown(f"<div style='text-align:center;'>{'✅' if l_min in s['palabra'] else '❌'}</div>", unsafe_allow_html=True)
-                    else:
-                        if st.button(letra, key=f"k-{letra}"):
-                            s["usadas"].append(l_min)
-                            if l_min not in s["palabra"]: s["intentos"] -= 1
-                            st.rerun()
-        
+        cols = st.columns(7) # Streamlit intentará poner 7, el CSS forzará el comportamiento
+        for i, letra in enumerate(abc):
+            l_min = letra.lower()
+            with cols[i % 7]:
+                if l_min in s["usadas"]:
+                    st.markdown(f"<div style='text-align:center; height:45px;'>{'✅' if l_min in s['palabra'] else '❌'}</div>", unsafe_allow_html=True)
+                else:
+                    if st.button(letra, key=f"k-{letra}"):
+                        s["usadas"].append(l_min)
+                        if l_min not in s["palabra"]: s["intentos"] -= 1
+                        s["ultima_act"] = time.time()
+                        st.rerun()
+
         # 5. BOTÓN ARRIESGAR (Abajo a la derecha)
-        st.write("---")
-        c1, c2 = st.columns([0.6, 0.4])
-        with c2:
-            if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
+        st.markdown('<div class="btn-arriesgar-container">', unsafe_allow_html=True)
+        col_espacio, col_btn = st.columns([0.6, 0.4])
+        with col_btn:
+            if st.button("🔥 ARRIESGAR", key="btn-arr"):
                 s["arriesgando"] = not s["arriesgando"]
                 st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if s["arriesgando"]:
-            arr = st.text_input("¿Cuál es la palabra?", key="fa").lower().strip()
+            arr = st.text_input("Palabra completa:", key="fa").lower().strip()
             if st.button("✔️ ENVIAR"):
                 if arr == s["palabra"]: s["gano_directo"] = True
                 else: s["intentos"] = 0
+                s["ultima_act"] = time.time()
                 st.rerun()
-        
-        time.sleep(2)
-        st.rerun()
