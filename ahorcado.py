@@ -66,4 +66,42 @@ if ganado:
     if st.button("NUEVA PARTIDA"): srv["palabra"] = ""; st.rerun()
 
 elif perdido:
-    st.markdown(f'<div class="d-bg"><p class="texto
+    st.markdown(f'<div class="d-bg"><p class="texto-final">💀 PERDISTE</p><p>La palabra era: {srv["palabra"].upper()}</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<center><div class="dibujo-box">{obtener_dibujo_texto(0)}</div></center>', unsafe_allow_html=True)
+    if st.button("REINTENTAR"): srv["palabra"] = ""; st.rerun()
+
+elif not srv["palabra"]:
+    st.title("🏹 Sala Online")
+    p = st.text_input("Palabra secreta:", type="password")
+    if st.button("EMPEZAR"):
+        if p:
+            srv.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
+            st.rerun()
+
+else:
+    st.title("🗡️ Ahorcado en Vivo")
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.markdown(f'<div class="dibujo-box">{obtener_dibujo_texto(srv["intentos"])}</div>', unsafe_allow_html=True)
+    with c2:
+        st.metric("Vidas", srv["intentos"])
+        adivina = st.text_input("¿Sabes la palabra?", key="full_word_input").lower().strip()
+        if st.button("ADIVINAR"):
+            if adivina == srv["palabra"]: srv["gano_directo"] = True
+            else: srv["intentos"] = 0
+            st.rerun()
+
+    visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
+    st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
+
+    # Teclado
+    cols = st.columns(7)
+    for i, l in enumerate("abcdefghijklmnopqrstuvwxyz"):
+        with cols[i % 7]:
+            if l in srv["usadas"]:
+                st.button("✅" if l in srv["palabra"] else "❌", key=f"k-{l}", disabled=True)
+            else:
+                if st.button(l.upper(), key=f"k-{l}"):
+                    srv["usadas"].append(l)
+                    if l not in srv["palabra"]: srv["intentos"] -= 1
+                    st.rerun()
