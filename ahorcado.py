@@ -8,7 +8,6 @@ st_autorefresh(interval=2000, key="sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    /* Teclado Adaptable: 7 columnas en cel, 9 en PC */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
         grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)) !important; 
@@ -16,16 +15,20 @@ st.markdown("""<style>
     }
     @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
     
-    /* Botones con borde inferior ancho (Efecto 3D) */
+    /* FIX: Centrado de letra y ajuste de bordes */
     button { 
         background:#161b22 !important; border:1px solid #000 !important; 
-        border-bottom: 5px solid #000 !important; /* Borde de abajo más ancho */
-        border-radius:10px !important; height:50px !important; transition: 0.1s;
+        border-bottom: 5px solid #000 !important; border-radius:10px !important; 
+        height:50px !important; width:100% !important;
+        padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important;
+    }
+    button p { 
+        color:white !important; font-weight:900 !important; font-size:20px !important; 
+        margin: 0 !important; line-height: 1 !important;
     }
     button:active { border-bottom: 1px solid #000 !important; transform: translateY(4px); }
-    button p { color:white !important; font-weight:900 !important; font-size:20px !important; }
     button:disabled { opacity:0.4 !important; border-bottom: 1px solid #000 !important; }
-    .w { font-size:35px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:20px 0; }
+    .w { font-size:35px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
@@ -52,7 +55,7 @@ else:
     win = all(l in s.u or l==" " for l in s.p)
     if win or s.v <= 0:
         st.write("🏆 GANASTE" if win else f"💀 PERDISTE: {s.p.upper()}")
-        if st.button("REINTENTAR"): s.p = ""; st.rerun()
+        if st.button("OTRA"): s.p = ""; st.rerun()
     else:
         draw(s.v)
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
