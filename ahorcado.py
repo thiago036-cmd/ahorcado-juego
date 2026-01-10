@@ -2,108 +2,126 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. CONFIGURACIÓN Y ESTADO ---
-st.set_page_config(page_title="Ahorcado Pastel Pro", layout="centered")
+st.set_page_config(page_title="Ahorcado Online Pro", layout="centered")
 
 @st.cache_resource
 def engine():
-    return {"p": "", "u": [], "v": 6, "win": False, "bet": False}
+    return {
+        "p": "", "u": [], "v": 6, "win": False, "bet": False,
+        "theme": "Claro"  # Estado del modo de color
+    }
 
 s = engine()
 st_autorefresh(interval=2500, key="global_sync")
 
-# --- 2. DISEÑO UI PASTEL (CLEAN & COMPACT) ---
-# Colores dinámicos basados en vidas
-color_vida = "#FFB7B2" if s["v"] <= 2 else "#FFDAC1" if s["v"] <= 4 else "#Baffc9"
+# --- 2. SELECTOR DE MODO (INTERFAZ) ---
+with st.sidebar:
+    st.title("⚙️ Ajustes")
+    s["theme"] = st.radio("Modo de Pantalla", ["Claro", "Oscuro"], index=0 if s["theme"] == "Claro" else 1)
+    if st.button("Reiniciar Aplicación"):
+        s.update({"p": "", "u": [], "v": 6, "win": False, "bet": False})
+        st.rerun()
+
+# --- 3. DISEÑO UI (DINÁMICO SEGÚN MODO) ---
+if s["theme"] == "Oscuro":
+    bg_app = "#0f172a"
+    bg_card = "#1e293b"
+    text_main = "#f1f5f9"
+    text_sec = "#94a3b8"
+    border_col = "#334155"
+    key_bg = "#1e293b"
+    btn_bg = "#334155"
+else:
+    bg_app = "#f3f4f6"
+    bg_card = "#ffffff"
+    text_main = "#1f2937"
+    text_sec = "#6b7280"
+    border_col = "#e5e7eb"
+    key_bg = "#f9fafb"
+    btn_bg = "#ffffff"
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=JetBrains+Mono&display=swap');
     
-    .stApp {{ background-color: #F3F4F6; color: #4B5563; font-family: 'Quicksand', sans-serif; }}
+    .stApp {{ background-color: {bg_app}; color: {text_main}; font-family: 'Quicksand', sans-serif; transition: 0.3s; }}
     
-    /* TÍTULO */
-    .title {{
-        text-align: center; font-weight: 700; font-size: 1.8rem;
-        color: #6D28D9; margin-bottom: 15px;
+    /* CABECERA */
+    .title {{ text-align: center; font-weight: 700; font-size: 1.8rem; color: #7c3aed; margin-bottom: 10px; }}
+
+    /* CONTENEDOR DEL MUÑECO (ARREGLADO) */
+    .hangman-display {{
+        background: #000000; /* Fondo negro siempre para el muñeco */
+        border: 4px solid #7c3aed; border-radius: 15px;
+        padding: 15px; width: 140px; margin: 0 auto 15px auto;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }}
+    .ascii-art {{
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 16px !important; line-height: 1.2 !important;
+        color: #10b981; white-space: pre !important; text-align: left;
+        display: inline-block;
     }}
 
-    /* CONTENEDOR PRINCIPAL */
+    /* TARJETA DE JUEGO */
     .game-card {{
-        background: white; border-radius: 24px; padding: 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        margin-bottom: 15px; border: 1px solid #E5E7EB;
-    }}
-
-    /* ARTE ASCII */
-    .ascii-box {{
-        font-family: 'JetBrains Mono', monospace; font-size: 12px;
-        color: #9CA3AF; line-height: 1.1; display: flex; 
-        justify-content: center; margin-bottom: 10px;
+        background: {bg_card}; border-radius: 20px; padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid {border_col}; margin-bottom: 15px;
     }}
 
     /* PALABRA */
-    .word-display {{
-        display: flex; justify-content: center; gap: 8px; margin: 15px 0;
-    }}
+    .word-display {{ display: flex; justify-content: center; gap: 10px; margin: 20px 0; }}
     .letter-slot {{
-        font-size: 24px; font-weight: 700; border-bottom: 3px solid #DDD6FE;
-        width: 28px; text-align: center; color: #4C1D95; height: 35px;
+        font-size: 26px; font-weight: 700; border-bottom: 3px solid #ddd6fe;
+        width: 30px; text-align: center; color: #7c3aed; height: 35px;
     }}
 
-    /* TECLADO CON FONDO UNIDO (PASTEL) */
-    .keyboard-bg {{
-        background: #F9FAFB; padding: 15px; border-radius: 20px;
+    /* TECLADO UNIFICADO */
+    .keyboard-box {{
+        background: {key_bg}; padding: 15px; border-radius: 20px;
         display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
-        border: 2px solid #F3F4F6;
+        border: 2px solid {border_col};
     }}
 
-    /* BOTONES KEYCAP PASTEL */
+    /* BOTONES */
     div[data-testid="column"] button {{
-        background: #FFFFFF !important; border: 1px solid #E5E7EB !important;
-        color: #6B7280 !important; border-radius: 10px !important;
-        height: 42px !important; font-weight: 700 !important;
-        box-shadow: 0 2px 0 #E5E7EB !important; transition: 0.1s !important;
+        background: {btn_bg} !important; border: 1px solid {border_col} !important;
+        color: {text_main} !important; border-radius: 10px !important;
+        height: 44px !important; font-weight: 700 !important;
+        box-shadow: 0 2px 0 {border_col} !important;
     }}
     div[data-testid="column"] button:hover {{
-        background: #DDD6FE !important; color: #4C1D95 !important;
-        border-color: #C4B5FD !important; transform: translateY(2px);
+        background: #ddd6fe !important; color: #4c1d95 !important;
     }}
 
-    /* BOTÓN ARRIESGAR */
     .stButton > button[key*="btn-arr"] {{
-        background: #FEF3C7 !important; color: #D97706 !important;
-        border: 1px solid #FDE68A !important; border-radius: 12px !important;
-        font-size: 13px !important; font-weight: 700 !important;
-    }}
-
-    /* STATUS VIDAS */
-    .status {{
-        text-align: center; font-size: 12px; font-weight: 700;
-        color: #9CA3AF; margin-bottom: 5px;
+        background: #fef3c7 !important; color: #d97706 !important;
+        border: 1px solid #fde68a !important; font-weight: 700 !important;
     }}
 
     #MainMenu, footer, header {{ visibility: hidden; }}
     </style>
     """, unsafe_allow_html=True)
 
-def draw(v):
+def get_drawing(v):
     stages = [
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=====",
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=====",
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=====",
-        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=====",
-        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=====",
-        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=====",
-        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n====="
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+        "  +---+\n  |   |\n      |\n      |\n      |\n      |\n========="
     ]
     return stages[v]
 
-# --- 3. LÓGICA DE INTERFAZ ---
+# --- 4. LÓGICA DE INTERFAZ ---
 if not s["p"]:
     st.markdown("<div class='title'>AHORCADO ONLINE</div>", unsafe_allow_html=True)
-    with st.form("setup"):
-        p_input = st.text_input("Palabra secreta:", type="password")
-        if st.form_submit_button("¡EMPEZAR JUEGO!", use_container_width=True):
+    with st.container():
+        p_input = st.text_input("Ingresa la palabra secreta:", type="password")
+        if st.button("COMENZAR PARTIDA", use_container_width=True):
             if p_input:
                 s.update({"p": p_input.lower().strip(), "u": [], "v": 6, "win": False})
                 st.rerun()
@@ -111,42 +129,43 @@ else:
     win = all(l in s["u"] or l == " " for l in s["p"]) or s["win"]
     
     if win or s["v"] <= 0:
-        st.markdown("<div class='game-card' style='text-align:center;'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='game-card' style='text-align:center;'>", unsafe_allow_html=True)
         if win:
             st.balloons()
-            st.markdown("<h2 style='color:#10B981;'>✨ ¡Ganaste! ✨</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='color:#10b981;'>✨ ¡GANASTE! ✨</h2>", unsafe_allow_html=True)
         else:
-            st.markdown("<h2 style='color:#EF4444;'>Suerte para la próxima</h2>", unsafe_allow_html=True)
-        st.markdown(f"La palabra era: <b style='color:#4C1D95;'>{s['p'].upper()}</b>", unsafe_allow_html=True)
-        if st.button("JUGAR OTRA VEZ", use_container_width=True):
+            st.markdown("<h2 style='color:#ef4444;'>GAME OVER</h2>", unsafe_allow_html=True)
+        st.markdown(f"La palabra era: <b style='color:#7c3aed; font-size:24px;'>{s['p'].upper()}</b>", unsafe_allow_html=True)
+        if st.button("VOLVER A JUGAR", use_container_width=True):
             s.update({"p": "", "u": [], "v": 6, "win": False, "bet": False})
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div class='title'>AHORCADO ONLINE</div>", unsafe_allow_html=True)
         
-        # Área de dibujo y palabra
+        # Área Visual
         st.markdown(f"""
-            <div class='game-card'>
-                <div class='ascii-box'>{draw(s['v'])}</div>
-                <div class='status'>VIDAS DISPONIBLES: {s['v']} / 6</div>
+            <div class='game-card' style='text-align:center;'>
+                <div class='hangman-display'>
+                    <div class='ascii-art'>{get_drawing(s['v'])}</div>
+                </div>
+                <div style='color:#9ca3af; font-size:12px; font-weight:700;'>INTENTOS: {s['v']} / 6</div>
                 <div class='word-display'>
                     {"".join([f"<div class='letter-slot'>{l.upper() if l in s['u'] or l == ' ' else ''}</div>" for l in s['p']])}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-        # Teclado con fondo unido
-        st.markdown("<div class='keyboard-bg'>", unsafe_allow_html=True)
+        # Teclado
+        st.markdown("<div class='keyboard-box'>", unsafe_allow_html=True)
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         cols = st.columns(7)
         for i, letra in enumerate(abc):
             l_min = letra.lower()
             with cols[i % 7]:
                 if l_min in s["u"]:
-                    # Letras ya usadas
-                    color_txt = "#A7F3D0" if l_min in s["p"] else "#F3F4F6"
-                    st.markdown(f"<div style='text-align:center; color:{color_txt}; font-weight:700; height:42px; line-height:42px;'>{letra}</div>", unsafe_allow_html=True)
+                    color_l = "#10b981" if l_min in s["p"] else "#94a3b8"
+                    st.markdown(f"<div style='text-align:center; color:{color_l}; font-weight:900; height:44px; line-height:44px;'>{letra}</div>", unsafe_allow_html=True)
                 else:
                     if st.button(letra, key=f"btn-{letra}"):
                         s["u"].append(l_min)
@@ -154,18 +173,17 @@ else:
                         st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # Botón Arriesgar compacto
-        st.markdown("<div style='display: flex; justify-content: flex-end; margin-top: 15px;'>", unsafe_allow_html=True)
-        col1, col2 = st.columns([0.6, 0.4])
-        with col2:
+        # Arriesgar
+        st.markdown("<br>", unsafe_allow_html=True)
+        izq, der = st.columns([0.6, 0.4])
+        with der:
             if st.button("🔥 ARRIESGAR", key="btn-arr", use_container_width=True):
                 s["bet"] = not s["bet"]
                 st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
         if s["bet"]:
-            ans = st.text_input("Escribe la palabra completa:", key="ans").lower().strip()
-            if st.button("ENVIAR RESPUESTA", use_container_width=True):
+            ans = st.text_input("Escribe la palabra:", key="ans").lower().strip()
+            if st.button("ENVIAR", use_container_width=True):
                 if ans == s["p"]: s["win"] = True
                 else: s["v"] = 0
                 st.rerun()
