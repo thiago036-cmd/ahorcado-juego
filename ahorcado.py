@@ -1,9 +1,9 @@
 import streamlit as st
 
-# --- CONFIGURACIÓN DE MEMORIA COMPARTIDA ---
-# Esto hace que todos los que entren al link vean los mismos datos
+# --- MEMORIA COMPARTIDA (EL SERVIDOR) ---
+# Esta función crea una sola "pizarra" para todos los que entren al link
 @st.cache_resource
-def obtener_estado_global():
+def obtener_servidor():
     return {
         "palabra": "",
         "usadas": [],
@@ -11,96 +11,98 @@ def obtener_estado_global():
         "gano_directo": False
     }
 
-global_state = obtener_estado_global()
+# Conectamos a todos los usuarios a la misma memoria
+srv = obtener_servidor()
 
-st.set_page_config(page_title="Ahorcado Sincronizado", layout="centered")
+st.set_page_config(page_title="Ahorcado Realtime", layout="centered")
 
-# Estilos visuales
+# CSS para que se vea bien en celular
 st.markdown("""
     <style>
-    .word-box { font-size: 45px; letter-spacing: 12px; text-align: center; margin: 20px; color: #ffffff; font-weight: bold; background: #333; border-radius: 15px; padding: 10px; }
-    .stButton > button { width: 100%; border-radius: 8px; height: 45px; font-size: 18px; }
+    .word-box { font-size: 45px; letter-spacing: 12px; text-align: center; margin: 20px; color: white; background: #333; border-radius: 15px; padding: 10px; font-weight: bold; }
+    .stButton > button { width: 100%; border-radius: 8px; height: 50px; font-size: 18px; }
+    code { font-size: 1.2em !important; color: #ffcc00 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-def obtener_dibujo(intentos):
+def dibujo(i):
     etapas = [
-        """ +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | """, # 0
+        """ +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | """, # 0 (Muerto)
         """ +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | """, # 1
         """ +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | """, # 2
         """ +---+ \n |   | \n O   | \n/|   | \n     | \n     | """, # 3
         """ +---+ \n |   | \n O   | \n |   | \n     | \n     | """, # 4
         """ +---+ \n |   | \n O   | \n     | \n     | \n     | """, # 5
-        """ +---+ \n |   | \n     | \n     | \n     | \n     | """  # 6
+        """ +---+ \n |   | \n     | \n     | \n     | \n     | """  # 6 (Vacio)
     ]
-    return etapas[intentos]
+    return etapas[i]
 
-# --- PANTALLA DE INICIO ---
-if not global_state["palabra"]:
-    st.title("🎮 Configura la Partida (Global)")
-    p_ingresada = st.text_input("JUGADOR 1: Escribe la palabra secreta:", type="password")
-    if st.button("🚀 COMENZAR PARA TODOS"):
-        if p_ingresada:
-            global_state["palabra"] = p_ingresada.lower().strip()
+# --- LÓGICA DE SALA ---
+
+if not srv["palabra"]:
+    st.title("🎮 Crear Sala Online")
+    p_secreta = st.text_input("Escribe la palabra para todos:", type="password")
+    if st.button("🚀 INICIAR PARTIDA"):
+        if p_secreta:
+            srv["palabra"] = p_secreta.lower().strip()
+            srv["usadas"] = []
+            srv["intentos"] = 6
+            srv["gano_directo"] = False
             st.rerun()
 
-# --- PANTALLA DE JUEGO ---
 else:
-    st.title("🗡️ Ahorcado Online")
+    st.title("🗡️ Ahorcado en Vivo")
     
-    col_dibujo, col_info = st.columns([1, 1])
-    with col_dibujo:
-        st.code(obtener_dibujo(global_state["intentos"]))
-    with col_info:
-        st.metric("Vidas", global_state["intentos"])
+    # Dibujo y Vidas (Sincronizado)
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.code(dibujo(srv["intentos"]))
+    with col2:
+        st.metric("Vidas Restantes", srv["intentos"])
         
-        # CUADRO SOLO PARA PALABRA COMPLETA
-        adivinanza = st.text_input("¿Sabes la palabra correcta?", key="input_global").lower().strip()
-        
-        if st.button("¡ADIVINAR!"):
-            if adivinanza:
-                if adivinanza == global_state["palabra"]:
-                    global_state["gano_directo"] = True
+        # Cuadro solo para la palabra completa
+        adivina_todo = st.text_input("¿Sabes la palabra?", placeholder="Escríbela aquí...").lower().strip()
+        if st.button("🔥 ¡ADIVINAR TODO!"):
+            if adivina_todo:
+                if adivina_todo == srv["palabra"]:
+                    srv["gano_directo"] = True
                 else:
-                    global_state["intentos"] = 0
+                    srv["intentos"] = 0
                 st.rerun()
 
-    # Palabra oculta
-    progreso = "".join([l.upper() if l in global_state["usadas"] or l == " " or global_state["gano_directo"] else "_" for l in global_state["palabra"]])
-    st.markdown(f"<div class='word-box'>{progreso}</div>", unsafe_allow_html=True)
+    # Mostrar progreso de la palabra
+    visual = "".join([l.upper() if l in srv["usadas"] or l == " " or srv["gano_directo"] else "_" for l in srv["palabra"]])
+    st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
 
-    # Teclado de botones
+    # Teclado de botones (Tocar una letra la marca para todos)
     st.write("---")
-    abc = "abcdefghijklmnopqrstuvwxyz"
-    cols = st.columns(9)
-    for i, letra in enumerate(abc):
-        with cols[i % 9]:
-            if letra in global_state["usadas"]:
-                label = "✅" if letra in global_state["palabra"] else "❌"
-                st.button(label, key=f"btn-{letra}", disabled=True)
+    cols = st.columns(7)
+    for i, letra in enumerate("abcdefghijklmnopqrstuvwxyz"):
+        with cols[i % 7]:
+            if letra in srv["usadas"]:
+                btn_label = "✅" if letra in srv["palabra"] else "❌"
+                st.button(btn_label, key=f"key-{letra}", disabled=True)
             else:
-                if st.button(letra.upper(), key=f"btn-{letra}"):
-                    global_state["usadas"].append(letra)
-                    if letra not in global_state["palabra"]:
-                        global_state["intentos"] -= 1
+                if st.button(letra.upper(), key=f"key-{letra}"):
+                    srv["usadas"].append(letra)
+                    if letra not in srv["palabra"]:
+                        srv["intentos"] -= 1
                     st.rerun()
 
-    # Final del Juego
-    ganado = all(l in global_state["usadas"] or l == " " for l in global_state["palabra"]) or global_state["gano_directo"]
-    
-    if ganado or global_state["intentos"] <= 0:
-        if ganado:
-            st.success(f"¡VICTORIA! Palabra: {global_state['palabra'].upper()}")
-        else:
-            st.error(f"¡GAME OVER! Era: {global_state['palabra'].upper()}")
-            
-        if st.button("🔄 Reiniciar Servidor"):
-            global_state["palabra"] = ""
-            global_state["usadas"] = []
-            global_state["intentos"] = 6
-            global_state["gano_directo"] = False
-            st.rerun()
-
-    # Botón de refrescar (Útil para ver qué hizo el otro)
-    if st.button("🔄 Ver jugadas de otros"):
+    # Botón para refrescar manualmente (por si acaso)
+    if st.button("🔄 Actualizar pantalla"):
         st.rerun()
+
+    # Final del juego
+    ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"]
+    
+    if ganado or srv["intentos"] <= 0:
+        if ganado:
+            st.balloons()
+            st.success(f"¡VICTORIA COLECTIVA! Era: {srv['palabra'].upper()}")
+        else:
+            st.error(f"¡TODOS PERDIERON! La palabra era: {srv['palabra'].upper()}")
+        
+        if st.button("🔄 Reiniciar Sala (Nueva Palabra)"):
+            srv["palabra"] = ""
+            st.rerun()
