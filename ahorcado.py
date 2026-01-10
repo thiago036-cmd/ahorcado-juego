@@ -8,17 +8,30 @@ st_autorefresh(interval=2000, key="sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(7,1fr); gap:5px; }
-    button { background:#161b22 !important; border:1px solid #30363d !important; border-radius:8px; height:45px; }
-    button p { color:white !important; font-weight:700; font-size:18px; }
-    button:disabled { opacity:0.4 !important; }
-    .w { font-size:32px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
+    /* Teclado Adaptable: 7 columnas en cel, 9 en PC */
+    [data-testid="stHorizontalBlock"] { 
+        display: grid !important; 
+        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)) !important; 
+        gap: 8px !important; 
+    }
+    @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(7, 1fr) !important; } }
+    
+    /* Botones con borde inferior ancho (Efecto 3D) */
+    button { 
+        background:#161b22 !important; border:1px solid #000 !important; 
+        border-bottom: 5px solid #000 !important; /* Borde de abajo más ancho */
+        border-radius:10px !important; height:50px !important; transition: 0.1s;
+    }
+    button:active { border-bottom: 1px solid #000 !important; transform: translateY(4px); }
+    button p { color:white !important; font-weight:900 !important; font-size:20px !important; }
+    button:disabled { opacity:0.4 !important; border-bottom: 1px solid #000 !important; }
+    .w { font-size:35px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c = "#7cfc00"
     part = lambda cond, d: d if cond else ""
-    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;border:1px solid #30363d;height:160px;">
+    svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:15px;border:2px solid #30363d;height:160px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
         {part(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
@@ -39,7 +52,7 @@ else:
     win = all(l in s.u or l==" " for l in s.p)
     if win or s.v <= 0:
         st.write("🏆 GANASTE" if win else f"💀 PERDISTE: {s.p.upper()}")
-        if st.button("OTRA"): s.p = ""; st.rerun()
+        if st.button("REINTENTAR"): s.p = ""; st.rerun()
     else:
         draw(s.v)
         st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
@@ -50,6 +63,4 @@ else:
             with cols[i]:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
-                    s.u.append(l.lower())
-                    if l.lower() not in s.p: s.v -= 1
-                    st.rerun()
+                    s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
