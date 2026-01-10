@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-# --- CONFIGURACIÓN DEL SERVIDOR (MEMORIA COMPARTIDA) ---
+# --- SERVIDOR (MEMORIA COMPARTIDA) ---
 @st.cache_resource
 def obtener_servidor():
     return {
@@ -13,93 +13,115 @@ def obtener_servidor():
 
 srv = obtener_servidor()
 
-# Configuración de página
-st.set_page_config(page_title="Ahorcado Realtime Pro", layout="centered")
-
-# AUTO-REFRESCO: Actualiza la pantalla de todos cada 2000ms (2 segundos)
+# Auto-refresco cada 2 segundos para sincronizar a todos
 st_autorefresh(interval=2000, key="datarefresh")
 
-# Estilos visuales
+st.set_page_config(page_title="Ahorcado Pro Online", layout="centered")
+
+# --- ESTILOS CSS ---
 st.markdown("""
     <style>
-    .word-box { font-size: 45px; letter-spacing: 12px; text-align: center; margin: 20px; color: white; background: #333; border-radius: 15px; padding: 10px; font-weight: bold; }
-    .stButton > button { width: 100%; border-radius: 8px; height: 50px; font-size: 18px; font-weight: bold; }
-    code { font-size: 1.3em !important; color: #ffcc00 !important; line-height: 1.1; }
+    .word-box { font-size: 50px; letter-spacing: 15px; text-align: center; margin: 20px; color: #FFD700; background: #262730; border-radius: 15px; padding: 20px; border: 2px solid #444; font-family: 'Courier New', Courier, monospace; }
+    .stButton > button { width: 100%; border-radius: 10px; height: 55px; font-weight: bold; border: 1px solid #555; }
+    
+    /* Pantallas Finales con animaciones simples */
+    .pantalla-victoria { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; padding: 60px; border-radius: 30px; text-align: center; border: 5px solid #ffffff; }
+    .pantalla-derrota { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; padding: 60px; border-radius: 30px; text-align: center; border: 5px solid #ffffff; }
+    .texto-grande { font-size: 50px; font-weight: 900; margin: 0; text-shadow: 2px 2px 4px #000; }
+    .palabra-revelada { font-size: 30px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; margin-top: 20px; display: inline-block; }
+    
+    /* Estilo para el dibujo */
+    .dibujo-contenedor { background: #111; padding: 20px; border-radius: 15px; border-left: 5px solid #ffcc00; font-family: monospace; font-size: 22px; color: #eee; line-height: 1; }
     </style>
     """, unsafe_allow_html=True)
 
-def dibujo(i):
+def obtener_muneco_pro(i):
+    # Usamos caracteres de bloques y emojis para un mejor look
     etapas = [
-        """ +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | """, # 0
-        """ +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | """, # 1
-        """ +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | """, # 2
-        """ +---+ \n |   | \n O   | \n/|   | \n     | \n     | """, # 3
-        """ +---+ \n |   | \n O   | \n |   | \n     | \n     | """, # 4
-        """ +---+ \n |   | \n O   | \n     | \n     | \n     | """, # 5
-        """ +---+ \n |   | \n     | \n     | \n     | \n     | """  # 6
+        # 0: Muerto
+        "  ╔═══╦  \n  ║   💀  \n  ║  /|\\  \n  ║  / \\  \n  ║       \n  ╩═══════",
+        # 1: Una pierna
+        "  ╔═══╦  \n  ║   😟  \n  ║  /|\\  \n  ║  /    \n  ║       \n  ╩═══════",
+        # 2: Cuerpo y brazos
+        "  ╔═══╦  \n  ║   😰  \n  ║  /|\\  \n  ║       \n  ║       \n  ╩═══════",
+        # 3: Cuerpo y un brazo
+        "  ╔═══╦  \n  ║   😨  \n  ║  /|   \n  ║       \n  ║       \n  ╩═══════",
+        # 4: Tronco
+        "  ╔═══╦  \n  ║   😧  \n  ║   |   \n  ║       \n  ║       \n  ╩═══════",
+        # 5: Solo cabeza
+        "  ╔═══╦  \n  ║   🤔  \n  ║       \n  ║       \n  ║       \n  ╩═══════",
+        # 6: Vacio
+        "  ╔═══╦  \n  ║       \n  ║       \n  ║       \n  ║       \n  ╩═══════"
     ]
     return etapas[i]
 
-# --- LÓGICA DE SALA ---
-if not srv["palabra"]:
-    st.title("🎮 Nueva Sala Multijugador")
-    st.write("Cualquiera que entre puede poner la palabra.")
-    p_secreta = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 INICIAR JUEGO PARA TODOS"):
+# --- LÓGICA DE ESTADO ---
+ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"] if srv["palabra"] else False
+perdido = srv["intentos"] <= 0
+
+# --- PANTALLAS ---
+
+if ganado:
+    st.balloons()
+    st.markdown(f"""
+        <div class="pantalla-victoria">
+            <p class="texto-grande">👑 ¡VICTORIA!</p>
+            <div class="palabra-revelada">LA PALABRA ERA: {srv['palabra'].upper()}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    if st.button("✨ JUGAR OTRA VEZ ✨"):
+        srv["palabra"] = ""
+        st.rerun()
+
+elif perdido:
+    st.markdown(f"""
+        <div class="pantalla-derrota">
+            <p class="texto-grande">⚰️ GAME OVER</p>
+            <div class="palabra-revelada">LA PALABRA ERA: {srv['palabra'].upper()}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f"<pre style='font-size:25px; text-align:center; background:none; border:none; color:white;'>{obtener_muneco_pro(0)}</pre>", unsafe_allow_html=True)
+    if st.button("🔄 INTENTAR DE NUEVO"):
+        srv["palabra"] = ""
+        st.rerun()
+
+elif not srv["palabra"]:
+    st.title("🏹 Sala de Ahorcado Online")
+    p_secreta = st.text_input("Ingresa la palabra secreta (nadie la verá):", type="password")
+    if st.button("🔥 CREAR SALA"):
         if p_secreta:
-            srv["palabra"] = p_secreta.lower().strip()
-            srv["usadas"] = []
-            srv["intentos"] = 6
-            srv["gano_directo"] = False
+            srv.update({"palabra": p_secreta.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
 
 else:
-    st.title("🗡️ Ahorcado en Tiempo Real")
+    st.title("🗡️ Batalla en Tiempo Real")
     
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.code(dibujo(srv["intentos"]))
-    with col2:
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.markdown(f"<div class='dibujo-contenedor'><pre>{obtener_muneco_pro(srv['intentos'])}</pre></div>", unsafe_allow_html=True)
+    with c2:
         st.metric("Vidas", srv["intentos"])
-        # Solo para palabra completa
-        adivina_todo = st.text_input("¿La sabes?", placeholder="Palabra completa...", key="guess_box").lower().strip()
-        if st.button("🔥 ¡ADIVINAR!"):
-            if adivina_todo:
-                if adivina_todo == srv["palabra"]:
-                    srv["gano_directo"] = True
-                else:
-                    srv["intentos"] = 0
-                st.rerun()
+        adivina = st.text_input("¿Crees saber la palabra?", placeholder="Escribe aquí...").lower().strip()
+        if st.button("🎯 ¡ADIVINAR TODO!"):
+            if adivina == srv["palabra"]: srv["gano_directo"] = True
+            else: srv["intentos"] = 0
+            st.rerun()
 
-    # Palabra sincronizada
-    visual = "".join([l.upper() if l in srv["usadas"] or l == " " or srv["gano_directo"] else "_" for l in srv["palabra"]])
-    st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
+    # Palabra
+    p_visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
+    st.markdown(f"<div class='word-box'>{p_visual}</div>", unsafe_allow_html=True)
 
-    # Teclado táctil
-    st.write("---")
+    # Teclado
+    st.write("### Selecciona una letra:")
+    abc = "abcdefghijklmnopqrstuvwxyz"
     cols = st.columns(7)
-    for i, letra in enumerate("abcdefghijklmnopqrstuvwxyz"):
+    for i, letra in enumerate(abc):
         with cols[i % 7]:
             if letra in srv["usadas"]:
                 label = "✅" if letra in srv["palabra"] else "❌"
-                st.button(label, key=f"btn-{letra}", disabled=True)
+                st.button(label, key=f"k-{letra}", disabled=True)
             else:
-                if st.button(letra.upper(), key=f"btn-{letra}"):
+                if st.button(letra.upper(), key=f"k-{letra}"):
                     srv["usadas"].append(letra)
-                    if letra not in srv["palabra"]:
-                        srv["intentos"] -= 1
+                    if letra not in srv["palabra"]: srv["intentos"] -= 1
                     st.rerun()
-
-    # Final del juego
-    ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"]
-    
-    if ganado or srv["intentos"] <= 0:
-        if ganado:
-            st.balloons()
-            st.success(f"¡VICTORIA! Era: {srv['palabra'].upper()}")
-        else:
-            st.error(f"¡PERDIERON! La palabra era: {srv['palabra'].upper()}")
-        
-        if st.button("🔄 Reiniciar Sala"):
-            srv["palabra"] = ""
-            st.rerun()
