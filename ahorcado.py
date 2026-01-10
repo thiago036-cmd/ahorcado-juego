@@ -10,60 +10,54 @@ srv = obtener_servidor()
 
 st.set_page_config(page_title="Ahorcado Pro", layout="centered")
 
-# --- CSS PARA ORDEN VERTICAL Y CORAZÓN ---
+# --- CSS PARA ALINEACIÓN VERTICAL Y TECLADO FIJO ---
 st.markdown("""
     <style>
-    /* Contenedor principal alineado verticalmente */
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
+    /* Forzar que las columnas NO se apilen en vertical en el celular */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    
+    /* Ajuste de los botones del teclado */
+    div[data-testid="stHorizontalBlock"] > div {
+        width: 14% !important; /* Esto asegura 7 letras por fila siempre */
+        min-width: 40px !important;
+        flex: none !important;
     }
 
-    /* Dibujo ASCII */
     .dibujo-box {
         font-family: 'Courier New', Courier, monospace;
-        background-color: #111;
-        color: #00ff00;
-        padding: 20px;
-        border-radius: 10px;
-        line-height: 1.2;
-        white-space: pre;
-        border: 2px solid #444;
-        text-align: center;
-        font-size: 22px;
-        margin-bottom: 10px;
+        background-color: #111; color: #00ff00; padding: 15px;
+        border-radius: 10px; line-height: 1.1; white-space: pre;
+        border: 2px solid #444; font-size: 20px;
+        display: inline-block;
     }
 
-    /* Contador de Vidas al lado del dibujo */
-    .vidas-text {
-        color: #ff4b4b;
+    .vidas-container {
+        display: inline-block;
+        vertical-align: top;
+        margin-left: 15px;
+        padding-top: 20px;
+        color: white;
         font-size: 24px;
         font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
     }
 
-    /* Palabra oculta */
     .word-box { 
-        font-size: 40px; 
-        letter-spacing: 10px; 
-        text-align: center; 
-        margin: 20px 0; 
-        color: #FFD700; 
-        background: #262730; 
-        border-radius: 15px; 
-        padding: 20px; 
-        font-family: monospace;
+        font-size: 35px; letter-spacing: 10px; text-align: center; 
+        margin: 20px 0; color: #FFD700; background: #262730; 
+        border-radius: 15px; padding: 15px; font-family: monospace;
         width: 100%;
     }
 
-    /* Botones de letras */
+    /* Estilo para los botones */
     .stButton > button {
         width: 100% !important;
-        height: 50px !important;
-        font-weight: bold !important;
+        padding: 5px 0px !important;
+        font-size: 16px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -84,7 +78,7 @@ def reiniciar_todo():
     srv.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False})
     st.rerun()
 
-# --- LÓGICA DE ESTADOS ---
+# --- LÓGICA ---
 ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"] if srv["palabra"] else False
 perdido = srv["intentos"] <= 0
 
@@ -102,26 +96,28 @@ elif not srv["palabra"]:
             srv.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
 else:
-    # --- JUEGO ACTIVO (ORDEN VERTICAL) ---
+    # --- JUEGO ACTIVO ---
     
-    # 1. Dibujo
-    st.markdown(f'<center><div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div></center>', unsafe_allow_html=True)
+    # Dibujo y Vidas al lado (como pediste en el dibujo rojo)
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div>
+            <div class="vidas-container">Vidas:<br>❤️ {srv["intentos"]}</div>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # 2. Vidas con Corazón (donde apuntaba la flecha)
-    st.markdown(f'<div class="vidas-text">Vidas: ❤️ {srv["intentos"]}</div>', unsafe_allow_html=True)
-    
-    # 3. Input para adivinar palabra completa
-    adivina = st.text_input("¿Ya sabes la palabra?", key="full_guess").lower().strip()
-    if st.button("ADIVINAR PALABRA"):
+    # Alineación vertical de lo que estaba en verde
+    st.write("") # Espaciador
+    adivina = st.text_input("¿La sabes?", key="full_input", placeholder="Adivinar palabra entera...").lower().strip()
+    if st.button("ADIVINAR", use_container_width=True):
         if adivina == srv["palabra"]: srv["gano_directo"] = True
         else: srv["intentos"] = 0
         st.rerun()
 
-    # 4. Espacio de la palabra
     visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
     st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
 
-    # 5. Teclado
+    # Teclado en cuadrícula de 7 columnas fija
     st.write("### Selecciona una letra:")
     abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     for fila in [abc[i:i+7] for i in range(0, len(abc), 7)]:
