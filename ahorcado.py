@@ -17,7 +17,7 @@ st.markdown("""<style>
     
     button { 
         background:#1c2128 !important; 
-        border:6px solid #000 !important; /* BORDE LATERAL MÁS ANCHO */
+        border:50px solid #000 !important; /* BORDE LATERAL MÁS ANCHO */
         border-bottom: 20px solid #000 !important; 
         border-radius:15px !important; 
         height:90px !important; width:100% !important;
@@ -66,5 +66,6 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
+
 
 
