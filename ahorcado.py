@@ -2,54 +2,53 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
-st.set_page_config(page_title="Ahorcado", layout="centered")
+st.set_page_config(page_title="Ahorcado", layout="wide") # Layout wide para más espacio en X
 if "p" not in st.session_state: st.session_state.update({"p":"","u":[],"v":6})
 st_autorefresh(interval=2000, key="sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
+    /* TECLAS MÁS ANCHAS: minmax de 120px para forzar el estiramiento en X */
     [data-testid="stHorizontalBlock"] { 
         display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)) !important; /* MÁS ANCHO EN X */
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; 
         gap: 15px !important; 
     }
-    @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(4, 1fr) !important; } }
+    @media (max-width: 600px) { [data-testid="stHorizontalBlock"] { grid-template-columns: repeat(3, 1fr) !important; } }
     
     button { 
-        background:#1c2128 !important; 
-        border:6px solid #000 !important; /* BORDE LATERAL MÁS ANCHO */
-        border-bottom: 20px solid #000 !important; 
-        border-radius:15px !important; 
-        height:90px !important; width:100% !important;
-        padding: 0 0 30px 0 !important;
+        background:#1c2128 !important; border:4px solid #000 !important; 
+        border-bottom: 20px solid #000 !important; border-radius:15px !important; 
+        height:80px !important; width:100% !important; /* El width 100% las hace ocupar todo el ancho del grid */
+        padding: 0 0 15px 0 !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     button p { color:white !important; font-weight:900 !important; font-size:32px !important; margin:0 !important; }
     button:active { border-bottom: 4px solid #000 !important; transform: translateY(16px); }
     button:disabled { opacity:0.4 !important; border-bottom: 5px solid #000 !important; }
-    .w { font-size:40px; font-weight:900; letter-spacing:12px; text-align:center; color:#58a6ff; margin:20px 0; }
+    .w { font-size:45px; font-weight:900; letter-spacing:15px; text-align:center; color:#58a6ff; margin:20px 0; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
     c = "#7cfc00"
-    part = lambda cond, d: d if cond else ""
+    p = lambda cond, d: d if cond else ""
     svg = f"""<div style="display:flex;justify-content:center;background:#11151c;border-radius:20px;border:3px solid #30363d;height:180px;">
     <svg width="150" height="150" viewBox="0 0 200 200">
         <path d="M20 180 H100 M60 180 V20 H140 V50" stroke="white" stroke-width="6" fill="none"/>
-        {part(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
-        {part(v<=4, f'<line x1="140" y1="80" x2="140" y2="130" stroke="{c}" stroke-width="4"/>')}
-        {part(v<=3, f'<line x1="140" y1="95" x2="115" y2="115" stroke="{c}" stroke-width="4"/>')}
-        {part(v<=2, f'<line x1="140" y1="95" x2="165" y2="115" stroke="{c}" stroke-width="4"/>')}
-        {part(v<=1, f'<line x1="140" y1="130" x2="115" y2="160" stroke="{c}" stroke-width="4"/>')}
-        {part(v<=0, f'<line x1="140" y1="130" x2="165" y2="160" stroke="{c}" stroke-width="4"/>')}
+        {p(v<=5, f'<circle cx="140" cy="65" r="15" stroke="{c}" stroke-width="4" fill="none"/>')}
+        {p(v<=4, f'<line x1="140" y1="80" x2="140" y2="130" stroke="{c}" stroke-width="4"/>')}
+        {p(v<=3, f'<line x1="140" y1="95" x2="115" y2="115" stroke="{c}" stroke-width="4"/>')}
+        {p(v<=2, f'<line x1="140" y1="95" x2="165" y2="115" stroke="{c}" stroke-width="4"/>')}
+        {p(v<=1, f'<line x1="140" y1="130" x2="115" y2="160" stroke="{c}" stroke-width="4"/>')}
+        {p(v<=0, f'<line x1="140" y1="130" x2="165" y2="160" stroke="{c}" stroke-width="4"/>')}
     </svg></div>"""
     cp.html(svg, height=190)
 
 st.title("🕹️ AHORCADO")
 s = st.session_state
 if not s.p:
-    p = st.text_input("PALABRA:", type="password")
-    if st.button("INICIAR"): s.p, s.u, s.v = p.lower().strip(), [], 6; st.rerun()
+    txt = st.text_input("PALABRA:", type="password")
+    if st.button("INICIAR"): s.p, s.u, s.v = txt.lower().strip(), [], 6; st.rerun()
 else:
     win = all(l in s.u or l==" " for l in s.p)
     if win or s.v <= 0:
@@ -66,10 +65,3 @@ else:
                 if l.lower() in s.u: st.button("✅" if l.lower() in s.p else "❌", key=l, disabled=True)
                 elif st.button(l, key=l):
                     s.u.append(l.lower()); s.v -= 1 if l.lower() not in s.p else 0; st.rerun()
-
-
-
-
-
-
-
