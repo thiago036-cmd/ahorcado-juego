@@ -4,21 +4,16 @@ import time
 # --- SERVIDOR (MEMORIA COMPARTIDA) ---
 @st.cache_resource
 def obtener_servidor():
-    return {
-        "palabra": "",
-        "usadas": [],
-        "intentos": 6,
-        "gano_directo": False
-    }
+    return {"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False}
 
 srv = obtener_servidor()
 
 st.set_page_config(page_title="Ahorcado Pro", layout="centered")
 
-# --- CSS RESPONSIVO MEJORADO ---
+# --- CSS DEFINITIVO PARA MÓVIL Y PC ---
 st.markdown("""
     <style>
-    /* Contenedor del Dibujo */
+    /* Dibujo ASCII centrado y sin romperse */
     .dibujo-box {
         font-family: 'Courier New', Courier, monospace;
         background-color: #111;
@@ -31,53 +26,50 @@ st.markdown("""
         text-align: center;
         margin: 10px auto;
         width: fit-content;
+        font-size: 20px;
     }
 
-    /* Palabra Oculta */
+    /* Palabra oculta ajustable */
     .word-box { 
-        font-size: 10vw; 
-        letter-spacing: 2vw; 
-        text-align: center; 
-        margin: 20px 0; 
-        color: #FFD700; 
-        background: #262730; 
-        border-radius: 15px; 
-        padding: 15px; 
-        font-family: monospace;
+        font-size: 35px; letter-spacing: 8px; text-align: center; 
+        margin: 20px 0; color: #FFD700; background: #262730; 
+        border-radius: 15px; padding: 15px; font-family: monospace;
     }
 
-    /* Pantallas de Fin */
-    .v-bg { background-color: #28a745; padding: 40px; border-radius: 20px; text-align: center; color: white; }
-    .d-bg { background-color: #dc3545; padding: 40px; border-radius: 20px; text-align: center; color: white; }
-
-    /* Forzar que los botones no se amontonen en móvil */
-    div[data-testid="stHorizontalBlock"] {
-        flex-wrap: wrap !important;
-        gap: 5px !important;
+    /* Contenedor del teclado para que NO se duplique */
+    .teclado-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
     }
-    
+
+    /* Ajuste de botones para que parezcan teclado de móvil */
     .stButton > button {
-        width: 100% !important;
-        height: 50px !important;
+        min-width: 45px !important;
+        height: 45px !important;
+        padding: 5px !important;
         font-weight: bold !important;
     }
 
-    @media (min-width: 800px) {
-        .word-box { font-size: 50px; letter-spacing: 15px; }
-        .dibujo-box { font-size: 24px; }
+    @media (max-width: 600px) {
+        .word-box { font-size: 25px; letter-spacing: 5px; }
+        .dibujo-box { font-size: 16px; }
     }
     </style>
     """, unsafe_allow_html=True)
 
 def obtener_dibujo(i):
+    # Texto puro para evitar que se mueva
     etapas = [
-        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======", 
-        " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======", 
-        " +---+ \n |   | \n     | \n     | \n     | \n     | \n======="  
+        " +---+ \n |   | \n O   | \n/|\\  | \n/ \\  | \n     | \n=======", # 0
+        " +---+ \n |   | \n O   | \n/|\\  | \n/    | \n     | \n=======", # 1
+        " +---+ \n |   | \n O   | \n/|\\  | \n     | \n     | \n=======", # 2
+        " +---+ \n |   | \n O   | \n/|   | \n     | \n     | \n=======", # 3
+        " +---+ \n |   | \n O   | \n |   | \n     | \n     | \n=======", # 4
+        " +---+ \n |   | \n O   | \n     | \n     | \n     | \n=======", # 5
+        " +---+ \n |   | \n     | \n     | \n     | \n     | \n======="  # 6
     ]
     return etapas[i]
 
@@ -85,36 +77,32 @@ def reiniciar_todo():
     srv.update({"palabra": "", "usadas": [], "intentos": 6, "gano_directo": False})
     st.rerun()
 
-# --- LÓGICA DE ESTADOS ---
+# --- FLUJO ---
 ganado = all(l in srv["usadas"] or l == " " for l in srv["palabra"]) or srv["gano_directo"] if srv["palabra"] else False
 perdido = srv["intentos"] <= 0
 
 if ganado:
-    st.markdown(f'<div class="v-bg"><h1>✨ ¡GANASTE!</h1><p>Palabra: {srv["palabra"].upper()}</p></div>', unsafe_allow_html=True)
-    st.button("🔄 JUGAR OTRA VEZ", on_click=reiniciar_todo, use_container_width=True)
-
+    st.success("✨ ¡GANASTE!")
+    st.button("🔄 NUEVA PARTIDA", on_click=reiniciar_todo)
 elif perdido:
-    st.markdown(f'<div class="d-bg"><h1>💀 PERDISTE</h1><p>Era: {srv["palabra"].upper()}</p></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="dibujo-box">{obtener_dibujo(0)}</div>', unsafe_allow_html=True)
-    st.button("🔄 REINTENTAR", on_click=reiniciar_todo, use_container_width=True)
-
+    st.error(f"💀 PERDISTE. La palabra era: {srv['palabra'].upper()}")
+    st.button("🔄 REINTENTAR", on_click=reiniciar_todo)
 elif not srv["palabra"]:
     st.title("🏹 Sala Online")
     p = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 EMPEZAR", use_container_width=True):
+    if st.button("EMPEZAR"):
         if p:
             srv.update({"palabra": p.lower().strip(), "usadas": [], "intentos": 6, "gano_directo": False})
             st.rerun()
-
 else:
-    # --- JUEGO ACTIVO ---
+    # JUEGO ACTIVO
     st.markdown(f'<div class="dibujo-box">{obtener_dibujo(srv["intentos"])}</div>', unsafe_allow_html=True)
     
-    c_m, c_i = st.columns([1, 1])
-    c_m.metric("Vidas", srv["intentos"])
-    with c_i:
-        adivina = st.text_input("¿La sabes?", key="full", placeholder="Escribe...").lower().strip()
-        if st.button("🎯 ADIVINAR", use_container_width=True):
+    col1, col2 = st.columns(2)
+    col1.metric("Vidas", srv["intentos"])
+    with col2:
+        adivina = st.text_input("¿La sabes?", key="full").lower().strip()
+        if st.button("ADIVINAR"):
             if adivina == srv["palabra"]: srv["gano_directo"] = True
             else: srv["intentos"] = 0
             st.rerun()
@@ -122,21 +110,23 @@ else:
     visual = "".join([l.upper() if l in srv["usadas"] or l == " " else "_" for l in srv["palabra"]])
     st.markdown(f"<div class='word-box'>{visual}</div>", unsafe_allow_html=True)
 
-    # Teclado con ajuste automático de columnas
-    abc = "abcdefghijklmnopqrstuvwxyz"
-    # Usamos un número menor de columnas para que en móvil no colapsen
-    num_cols = 4 if st.session_state.get('viewport_width', 1000) < 600 else 7
-    cols = st.columns(4 if ganado or perdido or True else 7) # Forzamos 4 para que sea seguro en móvil
+    # TECLADO CORREGIDO: Usamos columnas pero controladas para que no se dupliquen
+    st.write("### Selecciona una letra:")
+    abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     
-    for i, l in enumerate(abc):
-        with cols[i % 4]: # En celular 4 es el número mágico
-            if l in srv["usadas"]:
-                st.button("✅" if l in srv["palabra"] else "❌", key=f"k-{l}", disabled=True)
-            else:
-                if st.button(l.upper(), key=f"k-{l}"):
-                    srv["usadas"].append(l)
-                    if l not in srv["palabra"]: srv["intentos"] -= 1
-                    st.rerun()
+    # Creamos filas de 7 letras para que no se vea como una hilera infinita
+    for fila in [abc[i:i+7] for i in range(0, len(abc), 7)]:
+        cols = st.columns(7)
+        for i, letra in enumerate(fila):
+            l_min = letra.lower()
+            with cols[i]:
+                if l_min in srv["usadas"]:
+                    st.button("✅" if l_min in srv["palabra"] else "❌", key=f"k-{l_min}", disabled=True)
+                else:
+                    if st.button(letra, key=f"k-{l_min}"):
+                        srv["usadas"].append(l_min)
+                        if l_min not in srv["palabra"]: srv["intentos"] -= 1
+                        st.rerun()
 
     time.sleep(3)
     st.rerun()
