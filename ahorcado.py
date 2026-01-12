@@ -3,7 +3,7 @@ from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
 # --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado GLOBAL", layout="centered")
+st.set_page_config(page_title="Ahorcado", layout="centered")
 st_autorefresh(interval=1500, key="global_sync")
 
 # --- MEMORIA COMPARTIDA ---
@@ -19,7 +19,7 @@ st.markdown("""<style>
     
     /* Forzamos el ancho de las columnas para que no estiren el botón */
     [data-testid="column"] { 
-        width: 55px !important; 
+        width: 70px !important; 
         flex: none !important; 
     }
     
@@ -66,7 +66,7 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=150)
 
-st.title("🌎 AHORCADO GLOBAL")
+st.title("🌎 AHORCADO")
 
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
@@ -103,3 +103,4 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
+
