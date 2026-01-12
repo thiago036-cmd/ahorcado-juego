@@ -81,7 +81,7 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=150)
 
-st.title("☠️❌☠️AHORCADO"☠️❌☠️)
+st.title("❌AHORCADO❌")
 
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
@@ -118,3 +118,4 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
+
