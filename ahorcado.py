@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
-st.set_page_config(page_title="Ahorcado GLOBAL", layout="centered")
+st.set_page_config(page_title="Ahorcado", layout="centered")
 st_autorefresh(interval=1500, key="global_sync") # Sincroniza a todos cada 1.5s
 
 # --- MEMORIA COMPARTIDA (SERVIDOR) ---
@@ -16,7 +16,7 @@ state = get_global_state() # Esto es lo mismo para ti y para tu hermano
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important; gap: 8px !important; justify-content: center !important; }
-    button { background:#1c2128 !important; border: none !important; border-radius:8px !important; height:55px !important; }
+    button { background:#1c2128 !important; border: none !important; border-radius:8px !important; height:70px !important; }
     button p { color:white !important; font-weight:800 !important; font-size:20px !important; margin:0 !important; }
     .w { font-size:35px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
     .copy-box { background: #262730; padding: 10px; border-radius: 5px; border: 1px dashed #58a6ff; margin-bottom: 20px; text-align: center; }
@@ -35,12 +35,12 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=170)
 
-st.title("🌎 AHORCADO GLOBAL")
+st.title("AHORCADO")
 st.markdown('<div class="status">SALA PÚBLICA: Todos los que entren juegan aquí</div>', unsafe_allow_html=True)
 
 if not state["p"]:
     txt = st.text_input("Escribe la palabra secreta para todos:", type="password")
-    if st.button("🚀 INICIAR PARTIDA GLOBAL", use_container_width=True):
+    if st.button("🚀 INICIAR PARTIDA", use_container_width=True):
         if txt: 
             state["p"] = txt.lower().strip()
             state["u"] = []
@@ -49,8 +49,8 @@ if not state["p"]:
 else:
     win = all(l in state["u"] or l==" " for l in state["p"])
     if win or state["v"] <= 0:
-        st.write("🏆 ¡VICTORIA COLECTIVA!" if win else f"💀 PERDIMOS. Era: {state['p'].upper()}")
-        if st.button("🔄 REINICIAR SERVIDOR", use_container_width=True):
+        st.write("🏆 ¡VICTORIA!" if win else f"💀 PERDIMOS. Era: {state['p'].upper()}")
+        if st.button("🔄 REINICIAR", use_container_width=True):
             state["p"] = ""
             st.rerun()
     else:
@@ -68,4 +68,5 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
+
 
