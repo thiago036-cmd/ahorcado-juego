@@ -19,7 +19,7 @@ st.markdown("""<style>
     button { background:#1c2128 !important; border: none !important; border-radius:8px !important; height:55px !important; }
     button p { color:white !important; font-weight:800 !important; font-size:20px !important; margin:0 !important; }
     .w { font-size:35px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
-    .status { text-align: center; color: #fffd01; font-weight: bold; margin-bottom: 10px; }
+    .copy-box { background: #262730; padding: 10px; border-radius: 5px; border: 1px dashed #58a6ff; margin-bottom: 20px; text-align: center; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
@@ -68,3 +68,4 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
+
