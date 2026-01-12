@@ -2,28 +2,22 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
-# --- CONFIGURACIÓN PARA SERVIDOR ONLINE ---
-st.set_page_config(page_title="Ahorcado Online", layout="centered") 
+st.set_page_config(page_title="Ahorcado MULTIJUGADOR", layout="centered")
 
-# Forzamos que la sesión sea global para el navegador actual
-if "p" not in st.session_state: 
-    st.session_state.update({"p":"","u":[],"v":6})
+# --- SINCRONIZACIÓN MULTIJUGADOR ---
+# Leemos los datos directamente de la URL para que todos vean lo mismo
+query = st.query_params
+p_url = query.get("p", "") # Palabra secreta
+u_url = query.get("u", "").split(",") if query.get("u") else [] # Letras usadas
+v_url = int(query.get("v", 6)) # Vidas
 
-# Esto mantiene la conexión viva con el servidor cada 2 segundos
-st_autorefresh(interval=2000, key="online_sync")
+# Refresco rápido para ver los movimientos del otro jugador
+st_autorefresh(interval=1500, key="multi_sync")
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    [data-testid="stHorizontalBlock"] { 
-        display: grid !important; 
-        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important; 
-        gap: 8px !important; justify-content: center !important;
-    }
-    button { 
-        background:#1c2128 !important; border: none !important; border-radius:8px !important; 
-        height:55px !important; min-width:60px !important;
-        display: flex !important; align-items: center !important; justify-content: center !important; 
-    }
+    [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important; gap: 8px !important; justify-content: center !important; }
+    button { background:#1c2128 !important; border: none !important; border-radius:8px !important; height:55px !important; min-width:60px !important; }
     button p { color:white !important; font-weight:800 !important; font-size:20px !important; margin:0 !important; }
     .w { font-size:35px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
 </style>""", unsafe_allow_html=True)
@@ -41,35 +35,34 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=170)
 
-st.title("🕹️ AHORCADO")
-s = st.session_state
+st.title("👥 AHORCADO COOPERATIVO")
 
-if not s.p:
-    txt = st.text_input("Ingresa la palabra secreta:", type="password", key="input_palabra")
-    if st.button("🚀 EMPEZAR JUEGO", use_container_width=True):
+if not p_url:
+    txt = st.text_input("Palabra para tu hermano:", type="password")
+    if st.button("🚀 CREAR PARTIDA", use_container_width=True):
         if txt: 
-            s.p = txt.lower().strip()
-            s.u = []
-            s.v = 6
+            st.query_params.update({"p": txt.lower().strip(), "u": "", "v": 6})
             st.rerun()
 else:
-    win = all(l in s.u or l==" " for l in s.p)
-    if win or s.v <= 0:
-        st.write("🏆 ¡GANASTE!" if win else f"💀 PALABRA: {s.p.upper()}")
-        if st.button("🔄 REINTENTAR", use_container_width=True):
-            s.p = ""
+    win = all(l in u_url or l==" " for l in p_url)
+    if win or v_url <= 0:
+        st.write("🏆 ¡GANARON!" if win else f"💀 PERDIERON. Era: {p_url.upper()}")
+        if st.button("🔄 NUEVA PARTIDA", use_container_width=True):
+            st.query_params.clear()
             st.rerun()
     else:
-        draw(s.v)
-        st.markdown(f"<div class='w'>{' '.join([l.upper() if l in s.u or l==' ' else '_' for l in s.p])}</div>", unsafe_allow_html=True)
+        draw(v_url)
+        st.markdown(f"<div class='w'>{' '.join([l.upper() if l in u_url or l==' ' else '_' for l in p_url])}</div>", unsafe_allow_html=True)
+        st.write(f"❤️ Vidas compartidas: {v_url}")
         abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
         cols = st.columns(len(abc))
         for i, l in enumerate(abc):
             with cols[i]:
                 char = l.lower()
-                if char in s.u:
-                    st.button("✅" if char in s.p else "❌", key=f"btn_{l}", disabled=True)
-                elif st.button(l, key=f"btn_{l}"):
-                    s.u.append(char)
-                    if char not in s.p: s.v -= 1
+                if char in u_url:
+                    st.button("✅" if char in p_url else "❌", key=f"b_{l}", disabled=True)
+                elif st.button(l, key=f"b_{l}"):
+                    u_url.append(char)
+                    new_v = v_url - 1 if char not in p_url else v_url
+                    st.query_params.update({"u": ",".join(u_url), "v": new_v})
                     st.rerun()
