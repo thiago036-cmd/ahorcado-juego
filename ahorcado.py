@@ -15,7 +15,7 @@ state = get_global_state() # Esto es lo mismo para ti y para tu hermano
 
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
-    [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important; gap: 16px !important; justify-content: center !important; }
+    [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)) !important; gap: 50px !important; justify-content: center !important; }
     button { background:#1c2128 !important; border: none !important; border-radius:50px !important; height:55px !important; }
     button p { color:white !important; font-weight:800 !important; font-size:20px !important; margin:0 !important; }
     .w { font-size:35px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
@@ -68,6 +68,7 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
+
 
 
 
