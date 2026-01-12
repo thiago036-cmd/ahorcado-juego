@@ -3,7 +3,7 @@ from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
 # --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado GLOBAL", layout="centered")
+st.set_page_config(page_title="Ahorcado", layout="centered")
 st_autorefresh(interval=1500, key="global_sync")
 
 # --- MEMORIA COMPARTIDA ---
@@ -13,33 +13,34 @@ def get_global_state():
 
 state = get_global_state()
 
-# --- DISEÑO VISUAL (AJUSTABLE) ---
+# --- DISEÑO RESPONSIVO PARA MÓVIL Y PC ---
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     
-    /* Contenedor flexible con separación de 60px */
+    /* FUERZA LA CUADRÍCULA EN CELULARES (No se pone en vertical) */
     [data-testid="stHorizontalBlock"] { 
-        gap: 60px !important; 
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 60px !important; /* Espacio de 60px que pediste */
         justify-content: center !important; 
-        display: flex !important; 
-        flex-wrap: wrap !important; 
     }
 
-    /* El truco: quitar el ancho fijo de la columna de Streamlit */
+    /* Evita que Streamlit fuerce el ancho 100% en móviles */
     [data-testid="column"] { 
         width: auto !important; 
         flex: none !important; 
     }
 
-    /* BOTÓN QUE SE AJUSTA AL TEXTO */
+    /* BOTONES AJUSTABLES */
     button, .stButton>button { 
         background-color: #1c2128 !important; 
         border: none !important; 
         border-radius: 8px !important; 
         height: 50px !important; 
-        width: auto !important; /* El botón crece con la palabra */
-        min-width: 50px !important; /* Pero nunca es más chico que 50px */
-        padding: 0 20px !important; /* Espacio a los costados del texto */
+        width: auto !important;
+        min-width: 50px !important;
+        padding: 0 15px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -49,18 +50,19 @@ st.markdown("""<style>
         font-size: 18px !important; 
         font-weight: 800 !important; 
         color: white !important;
-        white-space: nowrap !important; /* Evita que la palabra se rompa */
+        white-space: nowrap !important;
         margin: 0 !important;
     }
 
+    /* CONTADOR DE VIDAS LIMPIO */
     .vidas-cont {
         text-align: center;
-        font-size: 22px;
+        font-size: 20px;
         color: #ff4b4b;
         font-weight: bold;
         padding: 10px;
         border-bottom: 2px solid #1c2128;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .w { font-size:32px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
@@ -79,28 +81,26 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=150)
 
-st.title("🌎 AHORCADO GLOBAL")
+st.title("☠️❌☠️AHORCADO"☠️❌☠️)
 
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
     if st.button("🚀 INICIAR PARTIDA"):
-        if txt: 
-            state["p"]=txt.lower().strip(); state["u"]=[]; state["v"]=6; st.rerun()
+        if txt: state["p"]=txt.lower().strip(); state["u"]=[]; state["v"]=6; st.rerun()
 else:
     win = all(l in state["u"] or l==" " for l in state["p"])
     if win or state["v"] <= 0:
-        st.write("🏆 ¡VICTORIA!" if win else f"💀 LA PALABRA ERA: {state['p'].upper()}")
-        if st.button("🔄 REINICIAR JUEGO"): 
-            state["p"]=""; st.rerun()
+        st.write("🏆 ¡GANARON!" if win else f"💀 ERA: {state['p'].upper()}")
+        if st.button("🔄 NUEVA PARTIDA"): state["p"]=""; st.rerun()
     else:
-        # CONTADOR DE VIDAS
+        # CONTADOR DE VIDAS ARREGLADO
         st.markdown(f'<div class="vidas-cont">{"❤️" * state["v"]} | Vidas: {state["v"]}</div>', unsafe_allow_html=True)
         
         draw(state["v"])
         
         with st.expander("🔥 ARRIESGAR"):
-            intento = st.text_input("Escribe la palabra:", key="risk_it")
-            if st.button("CONFIRMAR"):
+            intento = st.text_input("Palabra:", key="input_risk")
+            if st.button("ENVIAR"):
                 if intento.lower().strip() == state["p"]: state["u"] = list(state["p"])
                 else: state["v"] = 0
                 st.rerun()
