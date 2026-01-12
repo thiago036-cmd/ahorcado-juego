@@ -6,52 +6,62 @@ import streamlit.components.v1 as cp
 st.set_page_config(page_title="Ahorcado GLOBAL", layout="centered")
 st_autorefresh(interval=1500, key="global_sync")
 
-# --- MEMORIA COMPARTIDA ---
+# --- MEMORIA COMPARTIDA (SERVIDOR) ---
 @st.cache_resource
 def get_global_state():
     return {"p": "", "u": [], "v": 6}
 
 state = get_global_state()
 
-# --- DISEÑO VISUAL FINAL ---
+# --- DISEÑO VISUAL DEFINITIVO ---
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     
-    /* SEPARACIÓN DE 60PX ENTRE TECLAS */
+    /* TECLADO CON ESPACIADO DE 60PX REAL */
     [data-testid="stHorizontalBlock"] { 
         gap: 60px !important; 
         justify-content: center !important; 
         display: flex !important; 
         flex-wrap: wrap !important; 
-        margin-top: 20px;
     }
 
-    [data-testid="column"] { width: 50px !important; flex: none !important; }
-
-    /* BOTONES CHIQUITOS */
+    /* BOTONES CHIQUITOS (50x50) */
     button, .stButton>button { 
         background-color: #1c2128 !important; 
         border: none !important; 
-        border-radius: 6px !important; 
+        border-radius: 8px !important; 
         height: 50px !important; 
         width: 50px !important; 
+        min-width: 50px !important;
         padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
-    button p { font-size: 18px !important; font-weight: 800 !important; color: white !important; }
-
-    /* CONTADOR DE VIDAS MEJORADO */
-    .vidas-cont {
-        text-align: center;
-        font-size: 22px;
-        color: #ff4b4b;
-        font-weight: bold;
-        padding: 10px;
-        border-bottom: 2px solid #1c2128;
-        margin-bottom: 10px;
+    /* EVITAR QUE LAS LETRAS SE VEAN UNA DEBAJO DE OTRA */
+    button p, .stButton>button p { 
+        font-size: 20px !important; 
+        font-weight: 800 !important; 
+        color: white !important;
+        white-space: nowrap !important; /* Prohibe el salto de línea */
+        overflow: visible !important;
+        margin: 0 !important;
     }
 
-    .w { font-size:32px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
+    /* CONTADOR DE VIDAS TIPO BANNER */
+    .vidas-banner {
+        text-align: center;
+        background: rgba(255, 75, 75, 0.1);
+        border: 1px solid #ff4b4b;
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 22px;
+        margin-bottom: 15px;
+        color: #ff4b4b;
+    }
+
+    .w { font-size:35px; font-weight:900; letter-spacing:12px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
@@ -72,22 +82,28 @@ st.title("🌎 AHORCADO GLOBAL")
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
     if st.button("🚀 INICIAR PARTIDA"):
-        if txt: state["p"]=txt.lower().strip(); state["u"]=[]; state["v"]=6; st.rerun()
+        if txt: 
+            state["p"] = txt.lower().strip()
+            state["u"] = []
+            state["v"] = 6
+            st.rerun()
 else:
     win = all(l in state["u"] or l==" " for l in state["p"])
     if win or state["v"] <= 0:
         st.write("🏆 ¡VICTORIA!" if win else f"💀 LA PALABRA ERA: {state['p'].upper()}")
-        if st.button("🔄 REINICIAR"): state["p"]=""; st.rerun()
+        if st.button("🔄 REINICIAR"):
+            state["p"] = ""
+            st.rerun()
     else:
-        # CONTADOR DE VIDAS ARREGLADO
-        corazones = "❤️" * state["v"]
-        st.markdown(f'<div class="vidas-cont">{corazones} | Vidas: {state["v"]}</div>', unsafe_allow_html=True)
+        # CONTADOR DE VIDAS CON CORAZONES
+        coras = "❤️" * state["v"]
+        st.markdown(f'<div class="vidas-banner">{coras}<br>Vidas restantes: {state["v"]}</div>', unsafe_allow_html=True)
         
         draw(state["v"])
         
         with st.expander("🔥 ARRIESGAR"):
-            intento = st.text_input("Escribe la palabra:", key="risk_input")
-            if st.button("CONFIRMAR"):
+            intento = st.text_input("Escribe la palabra:", key="risk")
+            if st.button("CONFIRMAR ARRIESGAR"):
                 if intento.lower().strip() == state["p"]: state["u"] = list(state["p"])
                 else: state["v"] = 0
                 st.rerun()
@@ -100,8 +116,8 @@ else:
             with cols[i]:
                 char = l.lower()
                 if char in state["u"]:
-                    st.button("✅" if char in state["p"] else "❌", key=f"f_{l}", disabled=True)
-                elif st.button(l, key=f"f_{l}"):
+                    st.button("✅" if char in state["p"] else "❌", key=f"btn_{l}", disabled=True)
+                elif st.button(l, key=f"btn_{l}"):
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
