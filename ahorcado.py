@@ -3,7 +3,7 @@ from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
 # --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado", layout="centered")
+st.set_page_config(page_title="Ahorcado GLOBAL", layout="centered")
 st_autorefresh(interval=1500, key="global_sync")
 
 # --- MEMORIA COMPARTIDA ---
@@ -13,44 +13,45 @@ def get_global_state():
 
 state = get_global_state()
 
-# --- DISEÑO VISUAL FORZADO (BOTONES CHICOS) ---
+# --- DISEÑO VISUAL FINAL ---
 st.markdown("""<style>
     .stApp { background:#0e1117; color:white; }
     
-    /* Forzamos el ancho de las columnas para que no estiren el botón */
-    [data-testid="column"] { 
-        width: 70px !important; 
-        flex: none !important; 
-    }
-    
+    /* SEPARACIÓN DE 60PX ENTRE TECLAS */
     [data-testid="stHorizontalBlock"] { 
-        gap: 5px !important; 
+        gap: 60px !important; 
         justify-content: center !important; 
         display: flex !important; 
         flex-wrap: wrap !important; 
+        margin-top: 20px;
     }
 
-    /* BOTONES CHIQUITOS Y CUADRADOS */
+    [data-testid="column"] { width: 50px !important; flex: none !important; }
+
+    /* BOTONES CHIQUITOS */
     button, .stButton>button { 
         background-color: #1c2128 !important; 
         border: none !important; 
         border-radius: 6px !important; 
         height: 50px !important; 
         width: 50px !important; 
-        min-width: 50px !important;
         padding: 0 !important;
     }
     
-    button p { 
-        font-size: 18px !important; 
-        font-weight: 800 !important; 
+    button p { font-size: 18px !important; font-weight: 800 !important; color: white !important; }
+
+    /* CONTADOR DE VIDAS MEJORADO */
+    .vidas-cont {
+        text-align: center;
+        font-size: 22px;
+        color: #ff4b4b;
+        font-weight: bold;
+        padding: 10px;
+        border-bottom: 2px solid #1c2128;
+        margin-bottom: 10px;
     }
 
-    .w { font-size:30px; font-weight:900; letter-spacing:8px; text-align:center; color:#58a6ff; margin:15px 0; }
-    .vidas-banner { 
-        background: #ff4b4b22; padding: 10px; border-radius: 10px; 
-        text-align: center; font-size: 20px; border: 1px solid #ff4b4b; margin-bottom: 10px;
-    }
+    .w { font-size:32px; font-weight:900; letter-spacing:10px; text-align:center; color:#58a6ff; margin:20px 0; font-family:monospace; }
 </style>""", unsafe_allow_html=True)
 
 def draw(v):
@@ -66,25 +67,26 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=150)
 
-st.title("🌎 AHORCADO")
+st.title("🌎 AHORCADO GLOBAL")
 
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
-    if st.button("🚀 INICIAR"):
+    if st.button("🚀 INICIAR PARTIDA"):
         if txt: state["p"]=txt.lower().strip(); state["u"]=[]; state["v"]=6; st.rerun()
 else:
     win = all(l in state["u"] or l==" " for l in state["p"])
     if win or state["v"] <= 0:
-        st.write("🏆 ¡VICTORIA!" if win else f"💀 PALABRA: {state['p'].upper()}")
-        if st.button("🔄 REINICIAR PARTIDA"): state["p"]=""; st.rerun()
+        st.write("🏆 ¡VICTORIA!" if win else f"💀 LA PALABRA ERA: {state['p'].upper()}")
+        if st.button("🔄 REINICIAR"): state["p"]=""; st.rerun()
     else:
-        # CONTADOR DE VIDAS VISIBLE
-        st.markdown(f'<div class="vidas-banner">❤️ {" ".join(["❤"] * state["v"])} | {state["v"]} vidas</div>', unsafe_allow_html=True)
+        # CONTADOR DE VIDAS ARREGLADO
+        corazones = "❤️" * state["v"]
+        st.markdown(f'<div class="vidas-cont">{corazones} | Vidas: {state["v"]}</div>', unsafe_allow_html=True)
         
         draw(state["v"])
         
         with st.expander("🔥 ARRIESGAR"):
-            intento = st.text_input("Palabra completa:", key="arr_in")
+            intento = st.text_input("Escribe la palabra:", key="risk_input")
             if st.button("CONFIRMAR"):
                 if intento.lower().strip() == state["p"]: state["u"] = list(state["p"])
                 else: state["v"] = 0
@@ -98,9 +100,8 @@ else:
             with cols[i]:
                 char = l.lower()
                 if char in state["u"]:
-                    st.button("✅" if char in state["p"] else "❌", key=f"key_{l}", disabled=True)
-                elif st.button(l, key=f"key_{l}"):
+                    st.button("✅" if char in state["p"] else "❌", key=f"f_{l}", disabled=True)
+                elif st.button(l, key=f"f_{l}"):
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
-
