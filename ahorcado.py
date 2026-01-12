@@ -3,7 +3,7 @@ from streamlit_autorefresh import st_autorefresh
 import streamlit.components.v1 as cp
 
 # --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Ahorcado", layout="centered")
+st.set_page_config(page_title="😐Ahorcado😐", layout="centered")
 st_autorefresh(interval=1500, key="global_sync")
 
 # --- MEMORIA COMPARTIDA ---
@@ -81,7 +81,7 @@ def draw(v):
     </svg></div>"""
     cp.html(svg, height=150)
 
-st.title("❌AHORCADO❌")
+st.title("❌AHORCADO GLOBAL❌")
 
 if not state["p"]:
     txt = st.text_input("Palabra secreta:", type="password")
@@ -118,4 +118,3 @@ else:
                     state["u"].append(char)
                     if char not in state["p"]: state["v"] -= 1
                     st.rerun()
-
